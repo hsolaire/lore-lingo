@@ -1,0 +1,68 @@
+:root {
+  /* 深色毛玻璃 · Modern minimal 变体 */
+  --wallpaper-1: oklch(38% 0.09 255);
+  --wallpaper-2: oklch(26% 0.06 285);
+  --wallpaper-3: oklch(20% 0.04 220);
+
+  --glass:        oklch(28% 0.02 260 / 0.55);
+  --glass-strong: oklch(30% 0.025 260 / 0.72);
+  --glass-hi:     oklch(72% 0.02 260 / 0.10);
+  --fg:           oklch(96% 0.01 250);
+  --muted:        oklch(72% 0.015 255);
+  --faint:        oklch(60% 0.015 255);
+  --border:       oklch(85% 0.02 260 / 0.14);
+  --border-hi:    oklch(90% 0.02 260 / 0.22);
+  --accent:       oklch(72% 0.14 220);
+  --accent-dim:   oklch(72% 0.14 220 / 0.16);
+  --accent-fg:    oklch(22% 0.03 240);
+  --ok:           oklch(76% 0.15 155);
+  --ok-dim:       oklch(76% 0.15 155 / 0.16);
+  --warn:         oklch(80% 0.13 75);
+
+  --radius:   16px;
+  --radius-sm:10px;
+  --shadow:   0 24px 60px oklch(15% 0.03 260 / 0.55), 0 2px 8px oklch(10% 0.02 260 / 0.4);
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--fg);
+  /* Tauri 透明窗口模式：背景设为透明，壁纸由系统桌面提供 */
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.006em;
+}
+
+/* 浏览器预览模式（非 Tauri 环境）：还原壁纸背景与居中布局，方便本地开发调试 */
+@media not all and (display-mode: window-controls-overlay) {
+  body.preview-mode {
+    background:
+      radial-gradient(1200px 800px at 18% 12%, var(--wallpaper-1), transparent 60%),
+      radial-gradient(1000px 900px at 88% 90%, var(--wallpaper-2), transparent 55%),
+      linear-gradient(135deg, var(--wallpaper-3), oklch(16% 0.03 265));
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+  }
+}
+
+#app { display: contents; }
+
+/* 歌词形态：主体顶对齐（歌词条置顶显示） */
+body.lyric-mode { align-items: start; }
+
+/* 框选提示层：仅框选进行中显示 */
+body.selecting .capture-frame { display: block; animation: framePulse 1.6s ease-in-out infinite; }
+
+/* ============ 共享动画（放全局，避免 scoped 重命名 keyframes） ============ */
+@keyframes framePulse { 50% { border-color: oklch(72% 0.14 220 / 0.5); } }
+@keyframes blink { 50% { opacity: .35; } }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } }
