@@ -9,9 +9,15 @@ const { enter } = useLyricMode()
 const { drawerOpen, toggleDrawer } = useSettings()
 const { pinned, togglePin } = useTranslator()
 
-const win = getCurrentWindow()
-const closeWin   = () => win.close()
-const minimizeWin = () => win.minimize()
+let win: any = null
+try {
+  win = getCurrentWindow()
+} catch (_) {
+  // Tauri not available (dev mode without app context)
+}
+
+const closeWin   = () => win?.close()
+const minimizeWin = () => win?.minimize()
 </script>
 
 <template>

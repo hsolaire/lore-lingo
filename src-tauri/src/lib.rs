@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose, Engine as _};
 use screenshots::Screen;
 use tauri::command;
+use tauri::Manager;
 
 /// 截取指定屏幕区域，返回 PNG base64 字符串。
 /// x/y/w/h 均为逻辑像素（Tauri WebviewWindow 坐标系）。
@@ -57,6 +58,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![capture_region, list_screens])
+        .setup(|app| {
+            #[cfg(debug_assertions)]
+            if let Some(webview) = app.get_webview_window("main") {
+                webview.open_devtools();
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
