@@ -25,6 +25,22 @@
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "center": true
+      },
+      {
+        "label": "overlay",
+        "title": "LensLingo Overlay",
+        "url": "overlay.html",
+        "width": 1920,
+        "height": 1080,
+        "fullscreen": false,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "focus": false
       }
     ],
     "security": {
