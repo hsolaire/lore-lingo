@@ -23,6 +23,12 @@ export default defineConfig({
     target: ['es2021', 'chrome105', 'safari13'],
     minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
     sourcemap: !!process.env.TAURI_DEBUG,
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        overlay: fileURLToPath(new URL('./overlay.html', import.meta.url)),
+      },
+    },
   },
   envPrefix: ['VITE_', 'TAURI_'],
 })
