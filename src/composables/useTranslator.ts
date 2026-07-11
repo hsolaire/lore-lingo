@@ -27,8 +27,13 @@ export function useTranslator() {
 
   /** 切换置顶：同步到 Tauri 原生窗口层级 */
   async function togglePin() {
-    pinned.value = !pinned.value
-    await getCurrentWindow().setAlwaysOnTop(pinned.value)
+    const nextState = !pinned.value
+    try {
+      await getCurrentWindow().setAlwaysOnTop(nextState)
+      pinned.value = nextState
+    } catch (_) {
+      // Tauri not available (dev mode without app context)
+    }
     toast(pinned.value ? '窗口已置顶' : '取消置顶')
   }
 
