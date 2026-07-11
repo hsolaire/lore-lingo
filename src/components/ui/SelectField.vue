@@ -1,18 +1,32 @@
 <script setup lang="ts">
 // 复用 .field > label + .select 表单块
+// options 支持纯字符串或 {value, label} 对象两种形式
+export type SelectOption = string | { value: string; label: string }
+
 const model = defineModel<string>()
 
 defineProps<{
   label: string
-  options: string[]
+  options: SelectOption[]
 }>()
+
+function optionValue(opt: SelectOption) {
+  return typeof opt === 'string' ? opt : opt.value
+}
+function optionLabel(opt: SelectOption) {
+  return typeof opt === 'string' ? opt : opt.label
+}
 </script>
 
 <template>
   <div class="field">
     <label>{{ label }}</label>
     <select class="select" v-model="model">
-      <option v-for="opt in options" :key="opt" :value="opt">{{ opt }}</option>
+      <option
+        v-for="opt in options"
+        :key="optionValue(opt)"
+        :value="optionValue(opt)"
+      >{{ optionLabel(opt) }}</option>
     </select>
   </div>
 </template>

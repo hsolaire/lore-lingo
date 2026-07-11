@@ -4,8 +4,8 @@
   --wallpaper-2: oklch(26% 0.06 285);
   --wallpaper-3: oklch(20% 0.04 220);
 
-  --glass:        oklch(28% 0.02 260 / 0.55);
-  --glass-strong: oklch(30% 0.025 260 / 0.72);
+  --glass:        oklch(10% 0.02 260 / 0.75);
+  --glass-strong: oklch(12% 0.025 260 / 0.88);
   --glass-hi:     oklch(72% 0.02 260 / 0.10);
   --fg:           oklch(96% 0.01 250);
   --muted:        oklch(72% 0.015 255);
@@ -56,8 +56,8 @@ body {
 
 #app { display: contents; }
 
-/* 歌词形态：主体顶对齐（歌词条置顶显示） */
-body.lyric-mode { align-items: start; }
+/* 歌词形态：顶对齐，高度自适应内容，不撑满视口 */
+body.lyric-mode { align-items: start; height: auto; min-height: unset; }
 
 /* 框选提示层：仅框选进行中显示 */
 body.selecting .capture-frame { display: block; animation: framePulse 1.6s ease-in-out infinite; }
