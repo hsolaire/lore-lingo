@@ -25,3 +25,6 @@ serde_json = "1"
 # 屏幕截图（macOS / Windows / Linux 均支持）
 screenshots = "0.8"
 base64 = "0.22"
+
+# 枚举系统应用窗口（跨平台）
+xcap = "0.0.14"

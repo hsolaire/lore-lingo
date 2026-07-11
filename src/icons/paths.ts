@@ -94,6 +94,10 @@ export const icons: Record<string, IconDef> = {
   layout: {
     body: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>',
   },
+  // 下拉箭头
+  chevronDown: {
+    body: '<path d="m6 9 6 6 6-6"/>',
+  },
 }
 
 export type IconName = keyof typeof icons

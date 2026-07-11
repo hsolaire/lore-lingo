@@ -21,7 +21,7 @@ watchEffect(() => {
 
 <template>
   <CaptureFrame />
-  <MainPanel v-show="!lyricMode" />
-  <LyricBar v-show="lyricMode" />
+  <MainPanel v-if="!lyricMode" />
+  <LyricBar v-if="lyricMode" />
   <AppToast />
 </template>
