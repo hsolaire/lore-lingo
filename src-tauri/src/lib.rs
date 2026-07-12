@@ -20,6 +20,16 @@ use windows::{
     },
 };
 
+#[cfg(target_os = "windows")]
+use windows::Win32::{
+    UI::Shell::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON},
+    Graphics::Gdi::{
+        CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDIBits,
+        SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
+    },
+    UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL},
+};
+
 #[derive(Serialize)]
 struct WindowInfo {
     id: u32,
@@ -122,8 +132,10 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
     let mut pid: u32 = 0;
     GetWindowThreadProcessId(hwnd, Some(&mut pid));
 
-    // Get exe path
-    let exe = get_exe_name(pid).unwrap_or_else(|| "unknown.exe".to_string());
+    // Get exe path and name
+    let (exe_path, exe) = get_exe_info(pid)
+        .unwrap_or_else(|| ("".to_string(), "unknown.exe".to_string()));
+    let icon_b64 = if exe_path.is_empty() { None } else { get_exe_icon_b64(&exe_path) };
 
     let results = &*(lparam.0 as *const std::sync::Mutex<Vec<WindowInfo>>);
     if let Ok(mut list) = results.lock() {
@@ -131,7 +143,7 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
             id: hwnd.0 as u32,
             title,
             exe,
-            icon_b64: None, // filled in Task 3
+            icon_b64,
         });
     }
 
@@ -139,7 +151,8 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
 }
 
 #[cfg(target_os = "windows")]
-fn get_exe_name(pid: u32) -> Option<String> {
+fn get_exe_info(pid: u32) -> Option<(String, String)> {
+    // Returns (full_path, basename)
     use std::path::Path;
     unsafe {
         let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
@@ -147,8 +160,61 @@ fn get_exe_name(pid: u32) -> Option<String> {
         let mut len = buf.len() as u32;
         QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len).ok()?;
         let _ = CloseHandle(handle);
-        let path = String::from_utf16_lossy(&buf[..len as usize]);
-        Some(Path::new(&path).file_name()?.to_string_lossy().to_string())
+        let full_path = String::from_utf16_lossy(&buf[..len as usize]);
+        let basename = Path::new(&full_path).file_name()?.to_string_lossy().to_string();
+        Some((full_path, basename))
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
+    use std::io::Cursor;
+    use image::{ImageBuffer, RgbaImage};
+
+    unsafe {
+        let wide: Vec<u16> = exe_path.encode_utf16().chain(std::iter::once(0)).collect();
+        let mut shfi: SHFILEINFOW = std::mem::zeroed();
+        let ret = SHGetFileInfoW(
+            windows::core::PCWSTR(wide.as_ptr()),
+            Default::default(),
+            Some(&mut shfi),
+            std::mem::size_of::<SHFILEINFOW>() as u32,
+            SHGFI_ICON | SHGFI_LARGEICON,
+        );
+        if ret == 0 || shfi.hIcon.is_invalid() {
+            return None;
+        }
+
+        let mut bmi: BITMAPINFO = std::mem::zeroed();
+        bmi.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
+        bmi.bmiHeader.biWidth = 32;
+        bmi.bmiHeader.biHeight = -32; // top-down
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB.0;
+
+        let dc = CreateCompatibleDC(None);
+        let mut pixels: Vec<u8> = vec![0u8; 32 * 32 * 4];
+
+        let hbmp = CreateCompatibleBitmap(dc, 32, 32);
+        let old = SelectObject(dc, hbmp);
+        DrawIconEx(dc, 0, 0, shfi.hIcon, 32, 32, 0, None, DI_NORMAL).ok()?;
+        GetDIBits(dc, hbmp, 0, 32, Some(pixels.as_mut_ptr() as *mut _), &mut bmi, DIB_RGB_COLORS);
+        SelectObject(dc, old);
+        let _ = DeleteObject(hbmp);
+        let _ = DeleteDC(dc);
+        let _ = DestroyIcon(shfi.hIcon);
+
+        // Windows DIB is BGRA — convert to RGBA
+        for chunk in pixels.chunks_exact_mut(4) {
+            chunk.swap(0, 2); // B <-> R
+        }
+
+        let img: RgbaImage = ImageBuffer::from_raw(32, 32, pixels)?;
+        let dyn_img = image::DynamicImage::from(img);
+        let mut buf = Cursor::new(Vec::new());
+        dyn_img.write_to(&mut buf, image::ImageFormat::Png).ok()?;
+        Some(base64::engine::general_purpose::STANDARD.encode(buf.into_inner()))
     }
 }
 
