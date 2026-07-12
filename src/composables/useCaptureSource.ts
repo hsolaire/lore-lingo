@@ -7,19 +7,16 @@ export type SourceMode = 'app' | 'region'
 export interface WindowInfo {
   id: number
   title: string
-  appName: string
-  x: number
-  y: number
-  width: number
-  height: number
+  exe: string
+  icon_b64: string | null
 }
 
-// 单例捕获源状态
 const sourceMode = ref<SourceMode>('app')
 const selecting = ref(false)
-const windows = ref<WindowInfo[]>([])
+const windowList = ref<WindowInfo[]>([])
 const selectedWindow = ref<WindowInfo | null>(null)
-const loadingWindows = ref(false)
+const listOpen = ref(false)
+const listLoading = ref(false)
 let selectTimer: ReturnType<typeof setTimeout> | undefined
 
 export function useCaptureSource() {
@@ -34,31 +31,36 @@ export function useCaptureSource() {
 
   const targetMeta = computed(() => {
     if (sourceMode.value === 'app') {
-      if (!selectedWindow.value) return '点击下方选择目标窗口'
-      const { appName, width, height } = selectedWindow.value
-      return `${appName} · ${width}×${height}`
+      return selectedWindow.value?.exe ?? '点击下方选择目标窗口'
     }
     return '520 × 118 · 屏幕坐标 (700, 46)'
   })
 
   async function fetchWindows() {
-    loadingWindows.value = true
+    listLoading.value = true
     try {
-      windows.value = await invoke<WindowInfo[]>('list_windows')
-    } catch (e) {
-      toast('无法获取窗口列表')
-      windows.value = []
+      windowList.value = await invoke<WindowInfo[]>('list_windows')
+    } catch {
+      windowList.value = []
     } finally {
-      loadingWindows.value = false
+      listLoading.value = false
     }
   }
 
   function selectWindow(w: WindowInfo) {
     selectedWindow.value = w
-    toast(`已选择：${w.title}`)
+    listOpen.value = false
   }
 
-  /** 模拟框选：亮起提示框约 1.9s 后收起 */
+  function toggleList() {
+    if (!listOpen.value) {
+      listOpen.value = true
+      fetchWindows()
+    } else {
+      listOpen.value = false
+    }
+  }
+
   function startSelect() {
     selecting.value = true
     toast('拖拽屏幕以框选区域…')
@@ -69,29 +71,32 @@ export function useCaptureSource() {
     }, 1900)
   }
 
-  async function setSource(mode: SourceMode) {
+  function setSource(mode: SourceMode) {
     sourceMode.value = mode
-    if (mode === 'app') {
-      await fetchWindows()
-    } else {
+    if (mode === 'region') {
+      listOpen.value = false
       startSelect()
     }
   }
 
-  /** 重选：region 下重新框选，app 下重新获取窗口列表 */
-  async function reselect() {
-    if (sourceMode.value === 'region') {
-      startSelect()
-    } else {
-      await fetchWindows()
-      toast('窗口列表已刷新')
-    }
+  function reselect() {
+    if (sourceMode.value === 'region') startSelect()
+    else toggleList()
   }
 
   return {
-    sourceMode, selecting, loadingWindows,
-    windows, selectedWindow,
-    targetName, targetMeta,
-    setSource, startSelect, reselect, selectWindow, fetchWindows,
+    sourceMode,
+    selecting,
+    windowList,
+    selectedWindow,
+    listOpen,
+    listLoading,
+    targetName,
+    targetMeta,
+    fetchWindows,
+    selectWindow,
+    toggleList,
+    setSource,
+    reselect,
   }
 }
