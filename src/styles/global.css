@@ -31,6 +31,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { height: 100%; }
+/* Tauri 无边框窗口不需要窗口级滚动条；内容溢出交由内部容器处理 */
+html, body { overflow: hidden; }
 body {
   font-family: var(--font);
   color: var(--fg);

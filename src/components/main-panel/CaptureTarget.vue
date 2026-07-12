@@ -81,6 +81,7 @@ function fallbackLetter(exe: string) {
 <style scoped>
 .capture-target-wrap {
   margin: 8px 14px 0;
+  position: relative;
 }
 
 .target {
@@ -111,13 +112,26 @@ function fallbackLetter(exe: string) {
 }
 .chevron.up { transform: rotate(-90deg); }
 
-/* Dropdown */
+/* Dropdown — floats above content instead of pushing it down */
 .win-list {
-  margin-top: 4px;
+  position: absolute;
+  top: calc(100% + 4px); left: 0; right: 0;
+  z-index: 20;
   background: oklch(18% 0.02 260 / 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 12px 32px oklch(10% 0.02 260 / 0.55);
   overflow: hidden; max-height: 240px; overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hi) transparent;
 }
+.win-list::-webkit-scrollbar { width: 6px; }
+.win-list::-webkit-scrollbar-track { background: transparent; }
+.win-list::-webkit-scrollbar-thumb {
+  background: var(--border-hi); border-radius: 3px;
+}
+.win-list::-webkit-scrollbar-thumb:hover { background: var(--faint); }
 
 .list-header {
   display: flex; align-items: center; justify-content: space-between;
