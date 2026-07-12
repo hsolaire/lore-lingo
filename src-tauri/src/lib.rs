@@ -158,8 +158,9 @@ fn get_exe_info(pid: u32) -> Option<(String, String)> {
         let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
         let mut buf = vec![0u16; 1024];
         let mut len = buf.len() as u32;
-        QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len).ok()?;
+        let query_result = QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len);
         let _ = CloseHandle(handle);
+        query_result.ok()?;
         let full_path = String::from_utf16_lossy(&buf[..len as usize]);
         let basename = Path::new(&full_path).file_name()?.to_string_lossy().to_string();
         Some((full_path, basename))
@@ -198,12 +199,15 @@ fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
 
         let hbmp = CreateCompatibleBitmap(dc, 32, 32);
         let old = SelectObject(dc, hbmp);
-        DrawIconEx(dc, 0, 0, shfi.hIcon, 32, 32, 0, None, DI_NORMAL).ok()?;
-        GetDIBits(dc, hbmp, 0, 32, Some(pixels.as_mut_ptr() as *mut _), &mut bmi, DIB_RGB_COLORS);
+        let draw_result = DrawIconEx(dc, 0, 0, shfi.hIcon, 32, 32, 0, None, DI_NORMAL);
+        if draw_result.is_ok() {
+            GetDIBits(dc, hbmp, 0, 32, Some(pixels.as_mut_ptr() as *mut _), &mut bmi, DIB_RGB_COLORS);
+        }
         SelectObject(dc, old);
         let _ = DeleteObject(hbmp);
         let _ = DeleteDC(dc);
         let _ = DestroyIcon(shfi.hIcon);
+        draw_result.ok()?;
 
         // Windows DIB is BGRA — convert to RGBA
         for chunk in pixels.chunks_exact_mut(4) {
