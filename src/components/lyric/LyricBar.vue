@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useLyricDrag } from '@/composables/useLyricDrag'
-import { useLyricMode } from '@/composables/useLyricMode'
 import { useTranslator } from '@/composables/useTranslator'
 import LyricControls from './LyricControls.vue'
 import LyricBox from './LyricBox.vue'
+
+const props = defineProps<{ externalPeek?: number }>()
 
 const barEl = ref<HTMLElement | null>(null)
 
@@ -23,8 +24,7 @@ function onLeave() {
 
 const { placed, dragging, pos, size, onDragBarMousedown, onResizeMousedown } = useLyricDrag(barEl, () => peek())
 
-const { peekSignal } = useLyricMode()
-watch(peekSignal, () => peek())
+watch(() => props.externalPeek, () => peek())
 
 const { flip, swapText } = useTranslator()
 const swapping = ref(false)
