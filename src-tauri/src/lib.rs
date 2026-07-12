@@ -10,7 +10,7 @@ use windows::{
     Win32::{
         Foundation::{CloseHandle, BOOL, HWND, LPARAM},
         System::Threading::{
-            OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+            GetCurrentProcessId, OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
             PROCESS_QUERY_LIMITED_INFORMATION,
         },
         UI::WindowsAndMessaging::{
@@ -131,6 +131,11 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
     // Get process id
     let mut pid: u32 = 0;
     GetWindowThreadProcessId(hwnd, Some(&mut pid));
+
+    // 跳过 LensLingo 自身的窗口（main + overlay）
+    if pid == GetCurrentProcessId() {
+        return TRUE;
+    }
 
     // Get exe path and name
     let (exe_path, exe) = get_exe_info(pid)
