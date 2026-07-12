@@ -1,5 +1,6 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { emit } from '@tauri-apps/api/event'
 import { useToast } from './useToast'
 
 // 单例翻译状态：面板与歌词条共享同一份原文/译文/语言方向/置顶。
@@ -10,6 +11,28 @@ const langB = ref('简体中文')
 const pinned = ref(false)
 /** 是否命中字幕库（true=字幕库命中，false=模型翻译） */
 const hit = ref(true)
+
+let isBroadcasting = false
+
+async function broadcastState() {
+  if (isBroadcasting) return
+  try {
+    await emit('translator:update', {
+      srcText: srcText.value,
+      tgtText: tgtText.value,
+      langA: langA.value,
+      langB: langB.value,
+      pinned: pinned.value,
+    })
+  } catch (_) {}
+}
+
+// Watch all shared state and broadcast on change.
+// Guard with isBroadcasting to prevent the overlay's listen handler
+// from re-emitting when it updates local refs.
+watch([srcText, tgtText, langA, langB, pinned], () => {
+  broadcastState()
+})
 
 export function useTranslator() {
   const { toast } = useToast()
@@ -31,9 +54,7 @@ export function useTranslator() {
     try {
       await getCurrentWindow().setAlwaysOnTop(nextState)
       pinned.value = nextState
-    } catch (_) {
-      // Tauri not available (dev mode without app context)
-    }
+    } catch (_) {}
     toast(pinned.value ? '窗口已置顶' : '取消置顶')
   }
 
