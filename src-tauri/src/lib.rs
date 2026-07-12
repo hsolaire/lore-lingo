@@ -24,8 +24,8 @@ use windows::{
 use windows::Win32::{
     UI::Shell::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON},
     Graphics::Gdi::{
-        CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDIBits,
-        SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
+        CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
+        ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
     },
     UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL},
 };
@@ -140,6 +140,7 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
     let results = &*(lparam.0 as *const std::sync::Mutex<Vec<WindowInfo>>);
     if let Ok(mut list) = results.lock() {
         list.push(WindowInfo {
+            // HWND values on 64-bit Windows always fit in 32 bits (Win32 subsystem guarantee)
             id: hwnd.0 as u32,
             title,
             exe,
@@ -194,10 +195,11 @@ fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
         bmi.bmiHeader.biBitCount = 32;
         bmi.bmiHeader.biCompression = BI_RGB.0;
 
+        let screen_dc = GetDC(HWND::default());
+        let hbmp = CreateCompatibleBitmap(screen_dc, 32, 32);
+        ReleaseDC(HWND::default(), screen_dc);
         let dc = CreateCompatibleDC(None);
         let mut pixels: Vec<u8> = vec![0u8; 32 * 32 * 4];
-
-        let hbmp = CreateCompatibleBitmap(dc, 32, 32);
         let old = SelectObject(dc, hbmp);
         let draw_result = DrawIconEx(dc, 0, 0, shfi.hIcon, 32, 32, 0, None, DI_NORMAL);
         if draw_result.is_ok() {
