@@ -2,7 +2,15 @@ use base64::{engine::general_purpose, Engine as _};
 use screenshots::Screen;
 use tauri::command;
 use tauri::Manager;
-use xcap::Window;
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct WindowInfo {
+    id: u32,
+    title: String,
+    exe: String,
+    icon_b64: Option<String>,
+}
 
 /// 截取指定屏幕区域，返回 PNG base64 字符串。
 /// x/y/w/h 均为逻辑像素（Tauri WebviewWindow 坐标系）。
@@ -33,27 +41,6 @@ fn capture_region(x: i32, y: i32, w: u32, h: u32) -> Result<String, String> {
     Ok(general_purpose::STANDARD.encode(buf.into_inner()))
 }
 
-/// 列出所有可见应用程序窗口（标题非空）。
-#[command]
-fn list_windows() -> Vec<serde_json::Value> {
-    Window::all()
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|w| !w.title().is_empty())
-        .map(|w| {
-            serde_json::json!({
-                "id":      w.id(),
-                "title":   w.title(),
-                "appName": w.app_name(),
-                "x":       w.x(),
-                "y":       w.y(),
-                "width":   w.width(),
-                "height":  w.height(),
-            })
-        })
-        .collect()
-}
-
 /// 列出所有屏幕的基本信息。
 #[command]
 fn list_screens() -> Vec<serde_json::Value> {
@@ -73,6 +60,11 @@ fn list_screens() -> Vec<serde_json::Value> {
             })
         })
         .collect()
+}
+
+#[command]
+fn list_windows() -> Vec<WindowInfo> {
+    vec![]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
