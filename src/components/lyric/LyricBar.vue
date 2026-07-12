@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useLyricDrag } from '@/composables/useLyricDrag'
 import { useTranslator } from '@/composables/useTranslator'
 import LyricControls from './LyricControls.vue'
@@ -28,11 +28,18 @@ watch(() => props.externalPeek, () => peek())
 
 const { flip, swapText } = useTranslator()
 const swapping = ref(false)
+let swapTimer: ReturnType<typeof setTimeout> | undefined
 function onFlip() {
   swapping.value = true
-  setTimeout(() => { swapText(); swapping.value = false }, 180)
+  clearTimeout(swapTimer)
+  swapTimer = setTimeout(() => { swapText(); swapping.value = false }, 180)
   flip()
 }
+
+onUnmounted(() => {
+  clearTimeout(peekTimer)
+  clearTimeout(swapTimer)
+})
 </script>
 
 <template>

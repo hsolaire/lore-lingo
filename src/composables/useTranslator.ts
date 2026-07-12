@@ -34,6 +34,29 @@ watch([srcText, tgtText, langA, langB, pinned], () => {
   broadcastState()
 })
 
+export type TranslatorPayload = {
+  srcText: string
+  tgtText: string
+  langA: string
+  langB: string
+  pinned: boolean
+}
+
+/**
+ * Apply state received from the main window without triggering a re-broadcast.
+ * Sets isBroadcasting synchronously around the mutations; the Vue watcher fires
+ * asynchronously (nextTick) so the flag is already cleared by then.
+ */
+export function applyRemoteState(payload: TranslatorPayload) {
+  isBroadcasting = true
+  srcText.value  = payload.srcText
+  tgtText.value  = payload.tgtText
+  langA.value    = payload.langA
+  langB.value    = payload.langB
+  pinned.value   = payload.pinned
+  isBroadcasting = false
+}
+
 export function useTranslator() {
   const { toast } = useToast()
 
@@ -48,7 +71,8 @@ export function useTranslator() {
     ;[srcText.value, tgtText.value] = [tgtText.value, srcText.value]
   }
 
-  /** 切换置顶：同步到 Tauri 原生窗口层级 */
+  /** 切换置顶：同步到 Tauri 原生窗口层级（仅主窗口调用）。
+   *  覆层窗口应通过 emit('pin:toggle') 让主窗口执行此函数。 */
   async function togglePin() {
     const nextState = !pinned.value
     try {
