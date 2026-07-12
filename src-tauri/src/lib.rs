@@ -4,6 +4,22 @@ use tauri::command;
 use tauri::Manager;
 use serde::Serialize;
 
+#[cfg(target_os = "windows")]
+use windows::{
+    core::PWSTR,
+    Win32::{
+        Foundation::{CloseHandle, BOOL, HWND, LPARAM},
+        System::Threading::{
+            OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+            PROCESS_QUERY_LIMITED_INFORMATION,
+        },
+        UI::WindowsAndMessaging::{
+            EnumWindows, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId,
+            IsWindowVisible,
+        },
+    },
+};
+
 #[derive(Serialize)]
 struct WindowInfo {
     id: u32,
@@ -64,7 +80,76 @@ fn list_screens() -> Vec<serde_json::Value> {
 
 #[command]
 fn list_windows() -> Vec<WindowInfo> {
-    vec![]
+    #[cfg(not(target_os = "windows"))]
+    return vec![];
+
+    #[cfg(target_os = "windows")]
+    {
+        let results: std::sync::Mutex<Vec<WindowInfo>> = std::sync::Mutex::new(Vec::new());
+        let results_ptr = &results as *const _ as isize;
+
+        unsafe {
+            let _ = EnumWindows(
+                Some(enum_windows_callback),
+                LPARAM(results_ptr),
+            );
+        }
+
+        results.into_inner().unwrap_or_default()
+    }
+}
+
+#[cfg(target_os = "windows")]
+unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> BOOL {
+    use windows::Win32::Foundation::TRUE;
+
+    // Skip invisible windows
+    if !IsWindowVisible(hwnd).as_bool() {
+        return TRUE;
+    }
+
+    // Skip windows with no title
+    let title_len = GetWindowTextLengthW(hwnd);
+    if title_len == 0 {
+        return TRUE;
+    }
+
+    let mut title_buf = vec![0u16; (title_len + 1) as usize];
+    GetWindowTextW(hwnd, &mut title_buf);
+    let title = String::from_utf16_lossy(&title_buf[..title_len as usize]);
+
+    // Get process id
+    let mut pid: u32 = 0;
+    GetWindowThreadProcessId(hwnd, Some(&mut pid));
+
+    // Get exe path
+    let exe = get_exe_name(pid).unwrap_or_else(|| "unknown.exe".to_string());
+
+    let results = &*(lparam.0 as *const std::sync::Mutex<Vec<WindowInfo>>);
+    if let Ok(mut list) = results.lock() {
+        list.push(WindowInfo {
+            id: hwnd.0 as u32,
+            title,
+            exe,
+            icon_b64: None, // filled in Task 3
+        });
+    }
+
+    TRUE
+}
+
+#[cfg(target_os = "windows")]
+fn get_exe_name(pid: u32) -> Option<String> {
+    use std::path::Path;
+    unsafe {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
+        let mut buf = vec![0u16; 1024];
+        let mut len = buf.len() as u32;
+        QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len).ok()?;
+        let _ = CloseHandle(handle);
+        let path = String::from_utf16_lossy(&buf[..len as usize]);
+        Some(Path::new(&path).file_name()?.to_string_lossy().to_string())
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
