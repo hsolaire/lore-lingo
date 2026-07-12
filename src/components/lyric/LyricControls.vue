@@ -1,23 +1,35 @@
 <script setup lang="ts">
+import { emit } from '@tauri-apps/api/event'
 import { useLyricMode } from '@/composables/useLyricMode'
 import { useTranslator } from '@/composables/useTranslator'
-import { useCaptureSource } from '@/composables/useCaptureSource'
 import Icon from '@/components/ui/Icon.vue'
 
-const emit = defineEmits<{ flip: [] }>()
+const emitVue = defineEmits<{ flip: [] }>()
 
 const { exit, close } = useLyricMode()
-const { pinned, togglePin } = useTranslator()
-const { reselect } = useCaptureSource()
+const { pinned } = useTranslator()
+
+// Fix I-1: reselect must run in the main window (body class, useCaptureSource
+// singleton). Emit an event so App.vue handles it there.
+async function requestReselect() {
+  try { await emit('capture:reselect', {}) } catch (_) {}
+}
+
+// Fix I-2: togglePin calls getCurrentWindow() — in the overlay that would pin
+// the overlay, not the main window. Emit an event; App.vue calls the real
+// togglePin. The updated pinned ref propagates back via translator:update.
+async function requestTogglePin() {
+  try { await emit('pin:toggle', {}) } catch (_) {}
+}
 </script>
 
 <template>
   <div class="lyric-ctrl">
     <span class="cnow"><span class="dot"></span>VLC · 实时</span>
-    <button class="cbtn" title="重选捕获" aria-label="重选捕获" @click="reselect">
+    <button class="cbtn" title="重选捕获" aria-label="重选捕获" @click="requestReselect">
       <Icon name="crop" />
     </button>
-    <button class="cbtn" title="切换翻译方向" aria-label="切换翻译方向" @click="emit('flip')">
+    <button class="cbtn" title="切换翻译方向" aria-label="切换翻译方向" @click="emitVue('flip')">
       <Icon name="swap" />
     </button>
     <button
@@ -25,7 +37,7 @@ const { reselect } = useCaptureSource()
       :class="{ active: pinned }"
       title="窗口置顶"
       aria-label="窗口置顶"
-      @click="togglePin"
+      @click="requestTogglePin"
     >
       <Icon name="pin" />
     </button>

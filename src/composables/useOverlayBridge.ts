@@ -1,36 +1,31 @@
 import { onMounted, onUnmounted } from 'vue'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { useTranslator } from './useTranslator'
-
-export type TranslatorPayload = {
-  srcText: string
-  tgtText: string
-  langA: string
-  langB: string
-  pinned: boolean
-}
+import { applyRemoteState, type TranslatorPayload } from './useTranslator'
 
 export function useOverlayBridge(onPeek: () => void) {
-  const { srcText, tgtText, langA, langB, pinned } = useTranslator()
   const unlisten: UnlistenFn[] = []
 
   onMounted(async () => {
-    unlisten.push(
-      await listen<TranslatorPayload>('translator:update', ({ payload }) => {
-        srcText.value  = payload.srcText
-        tgtText.value  = payload.tgtText
-        langA.value    = payload.langA
-        langB.value    = payload.langB
-        pinned.value   = payload.pinned
+    // Register all event listeners in parallel so there is no window where
+    // some events are wired and others are not (Fix I-4).
+    const fns = await Promise.all([
+      // Fix C-1: use applyRemoteState to update refs without triggering a
+      // re-broadcast from the overlay's own watcher.
+      listen<TranslatorPayload>('translator:update', ({ payload }) => {
+        applyRemoteState(payload)
       }),
-      await listen('lyric:enter', () => {
-        onPeek()
+      listen('lyric:enter', () => { onPeek() }),
+      listen('lyric:peek',  () => { onPeek() }),
+      // Fix C-2: overlay hides itself when the main window requests exit/close.
+      listen('lyric:exit', async () => {
+        try { await getCurrentWindow().hide() } catch (_) {}
       }),
-      await listen('lyric:peek', () => {
-        onPeek()
+      listen('lyric:close', async () => {
+        try { await getCurrentWindow().hide() } catch (_) {}
       }),
-    )
+    ])
+    unlisten.push(...fns)
 
     // Keep overlay always-on-top when shown
     try {
