@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LensLingo — 主面板</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-od-id="app-body" class="win-main">
+
+  <!-- 框选区域示意 -->
+  <div class="capture-frame" aria-hidden="true">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+  </div>
+
+  <main class="app" data-od-id="translator-panel">
+
+    <header class="titlebar" data-od-id="titlebar">
+      <div class="traffic"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <b>LensLingo</b>
+        <span class="live">实时</span>
+      </div>
+      <span class="spacer"></span>
+      <button class="icon-btn" id="subtitleBtn" title="打开字幕窗口" data-od-id="open-subtitle-btn" aria-label="打开字幕窗口">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M6 14h5"/><path d="M14 14h4"/></svg>
+      </button>
+      <button class="icon-btn" id="pinBtn" title="窗口置顶" data-od-id="pin-btn" aria-label="窗口置顶">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="打开设置窗口" data-od-id="settings-btn" aria-label="打开设置窗口">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </header>
+
+    <div class="source-row" data-od-id="source-switch">
+      <div class="seg" role="tablist">
+        <button class="on" id="srcApp" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M7 7h.01"/></svg>
+          捕获应用
+        </button>
+        <button id="srcRegion" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/></svg>
+          框选区域
+        </button>
+      </div>
+      <button class="reselect" id="reselectBtn" data-od-id="reselect-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+        重选
+      </button>
+    </div>
+
+    <div class="target-wrap" data-od-id="capture-target-wrap">
+      <button type="button" class="target" id="targetBar" data-od-id="capture-target" aria-haspopup="listbox" aria-expanded="false">
+        <span class="thumb" id="targetThumb">V</span>
+        <div style="flex:1;min-width:0;text-align:left">
+          <b id="targetName">VLC · 媒体播放器</b>
+          <div class="dim" id="targetMeta">窗口 · 1920×1080 · 采样 2fps</div>
+        </div>
+        <svg class="target-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="win-picker" id="winPicker" role="listbox" aria-label="已开启的应用窗口" data-od-id="window-picker" hidden>
+        <div class="win-picker-head">已开启的窗口</div>
+        <div class="win-picker-list" id="winPickerList"></div>
+      </div>
+    </div>
+
+    <div class="stream">
+      <div class="lang-flip" data-od-id="lang-flip">
+        <span class="pill" id="langA">自动选择</span>
+        <button id="flipBtn" title="切换方向" aria-label="切换翻译方向">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+        </button>
+        <span class="pill" id="langB">简体中文</span>
+      </div>
+
+      <div class="combo-box" data-od-id="translation-box">
+        <button class="copy" data-copy="tgt" aria-label="复制译文"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        <p class="combo-src" id="srcText">I never thought I'd find you here, of all places.</p>
+        <p class="combo-tgt" id="tgtText">没想到会在这种地方遇见你。</p>
+      </div>
+    </div>
+
+    <div class="toolbar" data-od-id="toolbar">
+      <span class="sc-item"><span class="sc-name">手动翻译</span><span class="kbd" id="scManual">⌘⇧T</span></span>
+      <span class="sc-item"><span class="sc-name">自动翻译</span><span class="kbd" id="scAuto">⌘⇧A</span></span>
+      <span class="sc-item"><span class="sc-name">停止自动</span><span class="kbd" id="scStop">⌘⇧S</span></span>
+    </div>
+
+    <!-- 开始翻译 -->
+    <div class="win-links" data-od-id="window-links">
+      <button class="btn primary" id="startTranslate" data-od-id="start-translate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+        开始翻译
+      </button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">已复制</span></div>
+
+<script src="bridge.js"></script>
+<script>
+(function () {
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.prototype.slice.call(document.querySelectorAll(s));
+  const LL = window.LensLingo;
+
+  // ---- 渲染：把共享状态画到界面 ----
+  const srcText = $('#srcText'), tgtText = $('#tgtText');
+  const langA = $('#langA'), langB = $('#langB');
+  const targetName = $('#targetName'), targetMeta = $('#targetMeta'), targetThumb = $('#targetThumb');
+  const srcApp = $('#srcApp'), srcRegion = $('#srcRegion');
+  const pinBtn = $('#pinBtn');
+  const scManual = $('#scManual'), scAuto = $('#scAuto'), scStop = $('#scStop');
+
+  function render(s) {
+    srcText.textContent = s.src;
+    tgtText.textContent = s.tgt;
+    langA.textContent = '自动选择';
+    langB.textContent = s.to;
+    targetName.textContent = s.capture.name;
+    targetMeta.textContent = s.capture.meta;
+    targetThumb.textContent = (s.capture.name || 'V').charAt(0).toUpperCase();
+    // 捕获源分段
+    srcApp.classList.toggle('on', s.capture.mode === 'app');
+    srcApp.setAttribute('aria-selected', s.capture.mode === 'app');
+    srcRegion.classList.toggle('on', s.capture.mode === 'region');
+    srcRegion.setAttribute('aria-selected', s.capture.mode === 'region');
+    pinBtn.classList.toggle('active', !!s.pinned);
+    // 三个快捷键展示（跟随设置窗口）
+    const settings = s.settings || {};
+    scManual.textContent = settings.hotkeyTranslate || '⌘⇧T';
+    scAuto.textContent = settings.hotkeyAutoStart || '⌘⇧A';
+    scStop.textContent = settings.hotkeyAutoStop || '⌘⇧S';
+  }
+  render(LL.get());
+  LL.subscribe(render);   // 其他窗口改动时本窗口实时刷新
+
+  // ---- 交互 ----
+  // 捕获源
+  srcApp.addEventListener('click', () => {
+    LL.set({ capture: { mode: 'app', name: 'VLC · 媒体播放器', meta: '窗口 · 1920×1080 · 采样 2fps' } });
+  });
+  srcRegion.addEventListener('click', () => {
+    document.body.classList.add('selecting');
+    toast('拖拽屏幕以框选区域…');
+    setTimeout(() => {
+      document.body.classList.remove('selecting');
+      LL.set({ capture: { mode: 'region', name: '自定义区域', meta: '520 × 118 · 屏幕坐标 (700, 46)' } });
+      toast('区域已捕获');
+    }, 1900);
+  });
+  $('#reselectBtn').addEventListener('click', () => {
+    if (LL.get('capture').mode === 'region') srcRegion.click();
+    else toast('已重新捕获窗口');
+  });
+
+  // ---- 悬浮下拉：已开启的应用窗口列表 ----
+  const OPEN_WINDOWS = [
+    { name: 'VLC · 媒体播放器', meta: '窗口 · 1920×1080 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(55% 0.11 25), oklch(48% 0.09 300))' },
+    { name: 'Netflix — Chrome', meta: '窗口 · 1600×900 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(55% 0.18 25), oklch(45% 0.12 20))' },
+    { name: 'IINA · 播放器', meta: '窗口 · 1280×720 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(58% 0.13 250), oklch(48% 0.1 280))' },
+    { name: 'YouTube — Safari', meta: '窗口 · 1440×810 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(60% 0.17 20), oklch(50% 0.13 15))' },
+    { name: 'PotPlayer', meta: '窗口 · 1920×1080 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(60% 0.14 90), oklch(50% 0.11 70))' },
+    { name: 'QuickTime Player', meta: '窗口 · 1024×576 · 采样 2fps', grad: 'linear-gradient(135deg, oklch(62% 0.06 250), oklch(52% 0.05 250))' }
+  ];
+  const targetBar = $('#targetBar'), winPicker = $('#winPicker'), winPickerList = $('#winPickerList');
+  const CHECK_SVG = '<svg class="wo-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  function buildWinList() {
+    const current = LL.get('capture').name;
+    winPickerList.innerHTML = '';
+    OPEN_WINDOWS.forEach(w => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'win-opt' + (w.name === current ? ' sel' : '');
+      opt.setAttribute('role', 'option');
+      opt.setAttribute('aria-selected', w.name === current);
+      opt.innerHTML = '<span class="thumb" style="background:' + w.grad + '">' + w.name.charAt(0).toUpperCase() + '</span>'
+        + '<span class="wo-tx"><b>' + w.name + '</b><span>' + w.meta + '</span></span>' + CHECK_SVG;
+      opt.addEventListener('click', () => {
+        LL.set({ capture: { mode: 'app', name: w.name, meta: w.meta } });
+        closePicker();
+        toast('已切换到 ' + w.name);
+      });
+      winPickerList.appendChild(opt);
+    });
+  }
+  function positionPicker() {
+    const r = targetBar.getBoundingClientRect();
+    winPicker.style.left = r.left + 'px';
+    winPicker.style.width = r.width + 'px';
+    winPicker.style.top = (r.bottom + 6) + 'px';
+  }
+  function openPicker() {
+    buildWinList();
+    winPicker.hidden = false;
+    positionPicker();
+    targetBar.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onPickerKey, true);
+    window.addEventListener('resize', positionPicker, true);
+    window.addEventListener('scroll', positionPicker, true);
+  }
+  function closePicker() {
+    if (winPicker.hidden) return;
+    winPicker.hidden = true;
+    targetBar.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onDocClick, true);
+    document.removeEventListener('keydown', onPickerKey, true);
+    window.removeEventListener('resize', positionPicker, true);
+    window.removeEventListener('scroll', positionPicker, true);
+  }
+  function onDocClick(ev) {
+    if (!winPicker.contains(ev.target) && !targetBar.contains(ev.target)) closePicker();
+  }
+  function onPickerKey(ev) { if (ev.key === 'Escape') { ev.preventDefault(); closePicker(); } }
+  targetBar.addEventListener('click', () => { winPicker.hidden ? openPicker() : closePicker(); });
+
+  // 语言方向
+  $('#flipBtn').addEventListener('click', () => {
+    const s = LL.get();
+    LL.set({ from: s.to, to: s.from });
+    toast('已切换翻译方向');
+  });
+
+  // 置顶
+  pinBtn.addEventListener('click', () => { LL.set({ pinned: !LL.get('pinned') }); toast(LL.get('pinned') ? '窗口已置顶' : '取消置顶'); });
+
+  // 复制
+  $$('[data-copy]').forEach(btn => btn.addEventListener('click', () => {
+    const txt = btn.dataset.copy === 'src' ? srcText.textContent : tgtText.textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
+    toast('已复制' + (btn.dataset.copy === 'src' ? '原文' : '译文'));
+  }));
+
+  // 开始翻译
+  $('#startTranslate').addEventListener('click', () => {
+    LL.set({ auto: true });
+    LL.openWindow('subtitle');
+    toast('开始翻译');
+  });
+
+  // 标题栏图标：打开字幕 / 设置窗口
+  $('#subtitleBtn').addEventListener('click', () => LL.openWindow('subtitle'));
+  $('#settingsBtn').addEventListener('click', () => LL.openWindow('settings'));
+
+  // toast
+  let toastTimer; const toastEl = $('#toast'), toastMsg = $('#toastMsg');
+  function toast(msg) {
+    toastMsg.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+  }
+})();
+</script>
+</body>
+</html>
