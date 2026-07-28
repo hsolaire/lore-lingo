@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LensLingo — 设置</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-od-id="settings-body-win" class="win-settings">
+
+  <main class="app settings-win" data-od-id="settings-window">
+
+    <header class="titlebar" data-od-id="titlebar">
+      <div class="traffic"><i class="r" id="closeDot"></i><i class="y"></i><i class="g"></i></div>
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <b>设置</b>
+        <span class="sub">LensLingo</span>
+      </div>
+      <span class="spacer"></span>
+      <button class="icon-btn" id="openMain" title="打开主面板" aria-label="打开主面板">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      </button>
+    </header>
+
+    <!-- 左右菜单式：左侧竖向导航 + 右侧内容区 -->
+    <div class="settings-split" data-od-id="settings-split">
+
+      <!-- 左侧菜单 -->
+      <nav class="settings-nav" role="tablist" data-od-id="settings-nav">
+        <div class="nav-title">设置</div>
+
+        <button class="nav-item on" role="tab" data-tab="translate" data-od-id="nav-translate" aria-selected="true">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>
+          <span class="nav-tx"><b>翻译</b></span>
+        </button>
+
+        <button class="nav-item" role="tab" data-tab="shortcuts" data-od-id="nav-shortcuts" aria-selected="false">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h8"/><path d="M7 16h10"/></svg></span>
+          <span class="nav-tx"><b>快捷键</b></span>
+        </button>
+
+        <button class="nav-item" role="tab" data-tab="ocr" data-od-id="nav-ocr" aria-selected="false">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span>
+          <span class="nav-tx"><b>OCR</b></span>
+        </button>
+
+        <button class="nav-item" role="tab" data-tab="subs" data-od-id="nav-subs" aria-selected="false">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4"/><path d="M15 15h2"/><path d="M7 11h2"/><path d="M13 11h4"/></svg></span>
+          <span class="nav-tx"><b>字幕库</b></span>
+        </button>
+      </nav>
+
+      <!-- 右侧内容区 -->
+      <div class="settings-main" data-od-id="settings-main">
+
+        <!-- 翻译模型设置 -->
+        <div class="panel on" data-panel="translate" data-od-id="panel-translate">
+          <div class="panel-head"><h2>翻译</h2><p>选择翻译方式、间隔与 API 访问。</p></div>
+          <div class="field" data-od-id="translate-mode-field">
+            <label>翻译方式</label>
+            <div class="choice-grid" role="radiogroup" aria-label="翻译方式">
+              <label class="choice-card" data-od-id="mode-manual-card">
+                <input type="radio" name="translateMode" value="manual">
+                <span class="choice-mark"></span>
+                <span><b>手动翻译</b><em>按快捷键后只翻译当前画面一次</em></span>
+              </label>
+              <label class="choice-card" data-od-id="mode-auto-card">
+                <input type="radio" name="translateMode" value="auto" checked>
+                <span class="choice-mark"></span>
+                <span><b>自动翻译</b><em>按固定间隔识别并刷新译文</em></span>
+              </label>
+            </div>
+          </div>
+          <div class="field" id="autoIntervalField" data-od-id="auto-interval-field">
+            <label for="autoInterval">自动翻译间隔</label>
+            <div class="interval-row">
+              <input class="input mono" id="autoInterval" type="number" min="0.5" max="10" step="0.5" value="1">
+              <span>秒</span>
+            </div>
+            <span class="hint">默认 1 秒；间隔越短，OCR 与模型调用越频繁。</span>
+          </div>
+          <div class="field">
+            <label>翻译服务商</label>
+            <select class="select" id="provider">
+              <option>OpenAI · GPT-4o mini</option>
+              <option>Anthropic · Claude Haiku</option>
+              <option>DeepL API</option>
+              <option>Google 翻译 API</option>
+              <option>本地 Ollama · qwen2.5</option>
+              <option>自定义 OpenAI 兼容端点</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>API Endpoint</label>
+            <input class="input mono" id="apiBase" value="https://api.openai.com/v1" spellcheck="false">
+          </div>
+          <div class="field">
+            <label>API Key</label>
+            <div class="key-wrap">
+              <input class="input mono" id="apiKey" type="password" value="sk-live-9f2c8a71b4e0d3" spellcheck="false">
+              <button class="eye" id="keyEye" aria-label="显示/隐藏">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>源语言</label>
+              <select class="select" id="fromLang"><option>自动检测</option><option selected>English</option><option>日本語</option><option>한국어</option></select>
+            </div>
+            <div class="field">
+              <label>目标语言</label>
+              <select class="select" id="toLang"><option selected>简体中文</option><option>繁體中文</option><option>English</option></select>
+            </div>
+          </div>
+          <button class="btn" id="testTranslate" style="align-self:flex-start">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+            测试连接
+          </button>
+          <span class="status-line" id="translateStatus"><span class="dot"></span>已连接 · <b>GPT-4o mini</b> · 延迟 240ms</span>
+        </div>
+
+        <!-- 快捷键设置 -->
+        <div class="panel" data-panel="shortcuts" data-od-id="panel-shortcuts">
+          <div class="panel-head"><h2>快捷键</h2><p>点击后按下键盘组合键或手柄按键进行绑定，不支持手敲。</p></div>
+          <div class="shortcut-list" data-od-id="shortcut-list">
+            <div class="shortcut-item" data-shortcut="translate" data-od-id="shortcut-translate">
+              <span class="shortcut-copy"><b>翻译</b><em>手动翻译当前识别到的英文</em></span>
+              <div class="bind-grid">
+                <button type="button" class="bind-btn" data-bind-action="translate" data-bind-device="keyboard">
+                  <span>键盘</span><b id="bindKeyboardTranslate">⌘⇧T</b>
+                </button>
+                <button type="button" class="bind-btn" data-bind-action="translate" data-bind-device="gamepad">
+                  <span>手柄</span><b id="bindGamepadTranslate">未绑定</b>
+                </button>
+              </div>
+              <div class="bind-tools">
+                <button type="button" class="bind-tool" data-reset-action="translate" title="恢复默认键盘 + 清除手柄">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  恢复默认
+                </button>
+                <button type="button" class="bind-tool danger" data-clear-action="translate" title="清除该动作的键盘与手柄绑定">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  清除
+                </button>
+              </div>
+            </div>
+            <div class="shortcut-item" data-shortcut="autoStart" data-od-id="shortcut-auto-start">
+              <span class="shortcut-copy"><b>自动翻译</b><em>开始按间隔持续翻译</em></span>
+              <div class="bind-grid">
+                <button type="button" class="bind-btn" data-bind-action="autoStart" data-bind-device="keyboard">
+                  <span>键盘</span><b id="bindKeyboardAutoStart">⌘⇧A</b>
+                </button>
+                <button type="button" class="bind-btn" data-bind-action="autoStart" data-bind-device="gamepad">
+                  <span>手柄</span><b id="bindGamepadAutoStart">未绑定</b>
+                </button>
+              </div>
+              <div class="bind-tools">
+                <button type="button" class="bind-tool" data-reset-action="autoStart" title="恢复默认键盘 + 清除手柄">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  恢复默认
+                </button>
+                <button type="button" class="bind-tool danger" data-clear-action="autoStart" title="清除该动作的键盘与手柄绑定">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  清除
+                </button>
+              </div>
+            </div>
+            <div class="shortcut-item" data-shortcut="autoStop" data-od-id="shortcut-auto-stop">
+              <span class="shortcut-copy"><b>停止自动翻译</b><em>停止持续识别与翻译</em></span>
+              <div class="bind-grid">
+                <button type="button" class="bind-btn" data-bind-action="autoStop" data-bind-device="keyboard">
+                  <span>键盘</span><b id="bindKeyboardAutoStop">⌘⇧S</b>
+                </button>
+                <button type="button" class="bind-btn" data-bind-action="autoStop" data-bind-device="gamepad">
+                  <span>手柄</span><b id="bindGamepadAutoStop">未绑定</b>
+                </button>
+              </div>
+              <div class="bind-tools">
+                <button type="button" class="bind-tool" data-reset-action="autoStop" title="恢复默认键盘 + 清除手柄">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  恢复默认
+                </button>
+                <button type="button" class="bind-tool danger" data-clear-action="autoStop" title="清除该动作的键盘与手柄绑定">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  清除
+                </button>
+              </div>
+            </div>
+          </div>
+          <span class="status-line" id="bindHint"><span class="dot"></span>点击任意按钮后，直接按下键盘组合键或手柄按键</span>
+        </div>
+
+        <!-- OCR 设置 -->
+        <div class="panel" data-panel="ocr" data-od-id="panel-ocr">
+          <div class="panel-head"><h2>OCR</h2><p>配置屏幕文字识别引擎与采样。</p></div>
+          <div class="field">
+            <label>屏幕 OCR 引擎</label>
+            <select class="select" id="ocrEngine">
+              <option>macOS Vision（系统内置 · 离线）</option>
+              <option>Tesseract（本地）</option>
+              <option>PaddleOCR（本地）</option>
+              <option>云端 OCR · GPT-4o Vision</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>识别语言</label>
+            <select class="select"><option selected>英文</option><option>英文 + 日文</option><option>多语言</option></select>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>采样帧率</label>
+              <select class="select" id="fps"><option>1 fps · 省电</option><option selected>2 fps · 均衡</option><option>4 fps · 灵敏</option></select>
+            </div>
+            <div class="field">
+              <label>最低置信度</label>
+              <select class="select"><option>0.6</option><option selected>0.75</option><option>0.9 · 严格</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label class="toggle" style="justify-content:flex-start">
+              <input type="checkbox" checked><span class="switch"></span>
+              去重连续相同帧
+            </label>
+            <span class="hint">同一句话在画面停留时只翻译一次，减少模型调用。</span>
+          </div>
+          <span class="status-line" id="ocrStatus"><span class="dot"></span>Vision 引擎就绪 · 离线运行</span>
+        </div>
+
+        <!-- 字幕库 -->
+        <div class="panel" data-panel="subs" data-od-id="panel-subs">
+          <div class="panel-head"><h2>字幕库</h2><p>加载已有字幕，命中时免去模型查找。</p></div>
+          <div class="dropzone" id="dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8"/><path d="m8 17 4 4 4-4"/><path d="M20 16.7A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>
+            <b>拖入或点击加载字幕</b>
+            <span>支持 .srt · .ass · .vtt — 命中后免去模型查找</span>
+            <input type="file" id="fileInput" accept=".srt,.ass,.vtt" multiple hidden>
+          </div>
+          <div class="sub-list" id="subList">
+            <div class="sub-item" data-od-id="sub-item-1">
+              <span class="fmt">SRT</span>
+              <div class="meta"><b>Interstellar.2014.en.srt</b><span>1,842 条 · 已索引</span></div>
+              <button class="rm" aria-label="移除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <div class="sub-item" data-od-id="sub-item-2">
+              <span class="fmt">ASS</span>
+              <div class="meta"><b>YourName.jp-zh.ass</b><span>1,204 条 · 已索引</span></div>
+              <button class="rm" aria-label="移除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </div>
+          <div class="strategy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            <p><b>命中优先策略：</b>OCR 文本先在已加载字幕中做模糊匹配，命中即直接采用译文；未命中才调用翻译模型。已节省约 <b>68%</b> 的模型请求。</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">已保存</span></div>
+
+<script src="bridge.js"></script>
+<script>
+(function () {
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.prototype.slice.call(document.querySelectorAll(s));
+  const LL = window.LensLingo;
+
+  // ---- 左侧菜单切换 ----
+  $$('.settings-nav .nav-item').forEach(item => item.addEventListener('click', () => {
+    $$('.settings-nav .nav-item').forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected', 'false'); });
+    item.classList.add('on'); item.setAttribute('aria-selected', 'true');
+    const t = item.dataset.tab;
+    $$('.panel').forEach(p => p.classList.toggle('on', p.dataset.panel === t));
+  }));
+
+  // ---- 从共享状态回填 ----
+  const provider = $('#provider'), apiBase = $('#apiBase'), ocrEngine = $('#ocrEngine'), fps = $('#fps');
+  const fromLang = $('#fromLang'), toLang = $('#toLang');
+  const autoInterval = $('#autoInterval'), autoIntervalField = $('#autoIntervalField');
+  const bindHint = $('#bindHint');
+  const bindButtons = Array.prototype.slice.call(document.querySelectorAll('[data-bind-action][data-bind-device]'));
+  const bindFields = {
+    keyboard: {
+      translate: $('#bindKeyboardTranslate'),
+      autoStart: $('#bindKeyboardAutoStart'),
+      autoStop: $('#bindKeyboardAutoStop')
+    },
+    gamepad: {
+      translate: $('#bindGamepadTranslate'),
+      autoStart: $('#bindGamepadAutoStart'),
+      autoStop: $('#bindGamepadAutoStop')
+    }
+  };
+  const modeInputs = $$('input[name="translateMode"]');
+  const ACTIONS = ['translate', 'autoStart', 'autoStop'];
+  let captureState = null;
+  let gamepadTimer = null;
+  let gamepadSnapshot = {};
+  function hydrate(s) {
+    const st = s.settings || {};
+    if (st.provider) provider.value = st.provider;
+    if (st.apiBase) apiBase.value = st.apiBase;
+    if (st.ocrEngine) ocrEngine.value = st.ocrEngine;
+    if (st.fps) fps.value = st.fps;
+    if (st.translateMode) setMode(st.translateMode, false);
+    if (st.autoInterval) autoInterval.value = st.autoInterval;
+    setBindText('keyboard', 'translate', st.hotkeyTranslate || '⌘⇧T');
+    setBindText('keyboard', 'autoStart', st.hotkeyAutoStart || '⌘⇧A');
+    setBindText('keyboard', 'autoStop', st.hotkeyAutoStop || '⌘⇧S');
+    setBindText('gamepad', 'translate', st.gamepadTranslate || '未绑定');
+    setBindText('gamepad', 'autoStart', st.gamepadAutoStart || '未绑定');
+    setBindText('gamepad', 'autoStop', st.gamepadAutoStop || '未绑定');
+    setSelect(fromLang, s.from); setSelect(toLang, s.to);
+    refreshConflicts();
+  }
+  function setBindText(device, action, value) {
+    const el = bindFields[device] && bindFields[device][action];
+    if (el) el.textContent = value;
+  }
+  function setSelect(sel, val) {
+    const opt = Array.prototype.find.call(sel.options, o => o.value === val || o.textContent === val);
+    if (opt) sel.value = opt.value;
+  }
+  hydrate(LL.get());
+  LL.subscribe(hydrate);
+
+  // ---- 改动即写入共享状态 ----
+  provider.addEventListener('change', () => { LL.setSettings({ provider: provider.value }); toast('已更新翻译服务商'); });
+  apiBase.addEventListener('change', () => { LL.setSettings({ apiBase: apiBase.value }); toast('已保存 Endpoint'); });
+  ocrEngine.addEventListener('change', () => { LL.setSettings({ ocrEngine: ocrEngine.value }); toast('已更新 OCR 引擎'); });
+  fps.addEventListener('change', () => { LL.setSettings({ fps: fps.value }); });
+  fromLang.addEventListener('change', () => { LL.set({ from: fromLang.value }); });
+  toLang.addEventListener('change', () => { LL.set({ to: toLang.value }); });
+  modeInputs.forEach(input => input.addEventListener('change', () => {
+    if (!input.checked) return;
+    setMode(input.value, true);
+  }));
+  autoInterval.addEventListener('change', () => {
+    const next = clampInterval(autoInterval.value);
+    autoInterval.value = next;
+    LL.setSettings({ autoInterval: next });
+    toast('已保存自动翻译间隔');
+  });
+  bindButtons.forEach(btn => btn.addEventListener('click', () => {
+    startCapture(btn.dataset.bindAction, btn.dataset.bindDevice, btn);
+  }));
+
+  // ---- 清除 / 恢复默认 ----
+  document.querySelectorAll('[data-clear-action]').forEach(btn => btn.addEventListener('click', () => {
+    const action = btn.dataset.clearAction;
+    saveBinding(action, 'keyboard', '未绑定');
+    saveBinding(action, 'gamepad', '未绑定');
+    toast('已清除该动作的绑定');
+  }));
+  document.querySelectorAll('[data-reset-action]').forEach(btn => btn.addEventListener('click', () => {
+    const action = btn.dataset.resetAction;
+    saveBinding(action, 'keyboard', defaultBindText(action, 'keyboard'));
+    saveBinding(action, 'gamepad', '未绑定');
+    toast('已恢复默认快捷键');
+  }));
+
+  // ---- 冲突检测：同一按键（键盘或手柄）绑到两个动作时黄色警告 ----
+  function refreshConflicts() {
+    const settings = LL.get('settings') || {};
+    ['keyboard', 'gamepad'].forEach(device => {
+      const counts = {};
+      ACTIONS.forEach(action => {
+        const v = settings[deviceKey(action, device)] || defaultBindText(action, device);
+        if (v && v !== '未绑定') counts[v] = (counts[v] || 0) + 1;
+      });
+      ACTIONS.forEach(action => {
+        const el = bindFields[device][action];
+        if (!el) return;
+        const btn = el.closest('.bind-btn');
+        const v = el.textContent;
+        btn.classList.toggle('conflict', !!(counts[v] && counts[v] > 1 && v !== '未绑定' && !btn.classList.contains('listening')));
+      });
+    });
+    const anyConflict = document.querySelector('.bind-btn.conflict');
+    if (!captureState) {
+      if (anyConflict) {
+        bindHint.classList.add('warn');
+        bindHint.innerHTML = '<span class="dot"></span>存在重复绑定：同一按键被分配给了多个动作，请调整';
+      } else {
+        bindHint.classList.remove('warn');
+        bindHint.innerHTML = '<span class="dot"></span>点击任意按钮后，直接按下键盘组合键或手柄按键';
+      }
+    }
+  }
+
+  function startCapture(action, device, button) {
+    if (device === 'gamepad' && !hasConnectedGamepad()) {
+      button.classList.add('nopad');
+      setTimeout(() => button.classList.remove('nopad'), 900);
+      bindHint.classList.add('warn');
+      bindHint.innerHTML = '<span class="dot"></span>未检测到手柄，请先连接手柄（并按任意键唤醒）后重试';
+      toast('未检测到手柄');
+      return;
+    }
+    stopCapture(false);
+    captureState = { action, device, button };
+    button.classList.add('listening');
+    button.classList.remove('conflict');
+    button.querySelector('b').textContent = '按下…';
+    bindHint.classList.remove('warn');
+    bindHint.innerHTML = '<span class="dot"></span>正在监听' + (device === 'keyboard' ? '键盘' : '手柄') + '输入，按 Esc 可取消';
+    window.addEventListener('keydown', onCaptureKeydown, true);
+    if (device === 'gamepad') startGamepadCapture();
+  }
+  function hasConnectedGamepad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (let i = 0; i < pads.length; i++) { if (pads[i] && pads[i].connected !== false) return true; }
+    return false;
+  }
+  function stopCapture(restore) {
+    if (!captureState) return;
+    const { action, device, button } = captureState;
+    window.removeEventListener('keydown', onCaptureKeydown, true);
+    if (gamepadTimer) {
+      clearInterval(gamepadTimer);
+      gamepadTimer = null;
+      gamepadSnapshot = {};
+    }
+    button.classList.remove('listening');
+    if (restore) refreshBindButton(action, device);
+    captureState = null;
+    refreshConflicts();
+  }
+  function onCaptureKeydown(ev) {
+    if (!captureState) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (ev.key === 'Escape') { stopCapture(true); return; }
+    if (captureState.device !== 'keyboard') return;
+    const combo = formatKeyboardCombo(ev);
+    if (!combo) return;
+    saveBinding(captureState.action, 'keyboard', combo);
+    toast('已绑定键盘快捷键');
+    stopCapture(false);
+  }
+  function startGamepadCapture() {
+    const tick = () => {
+      if (!captureState || captureState.device !== 'gamepad') return;
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      let found = null;
+      for (let i = 0; i < pads.length && !found; i++) {
+        const pad = pads[i];
+        if (!pad) continue;
+        const prev = gamepadSnapshot[pad.index] || [];
+        for (let b = 0; b < pad.buttons.length; b++) {
+          const pressed = !!pad.buttons[b].pressed || pad.buttons[b].value > 0.5;
+          if (pressed && !prev[b]) {
+            found = formatGamepadButton(pad, b);
+            break;
+          }
+        }
+        gamepadSnapshot[pad.index] = pad.buttons.map(btn => !!btn.pressed || btn.value > 0.5);
+      }
+      if (found) {
+        saveBinding(captureState.action, 'gamepad', found);
+        toast('已绑定手柄按键');
+        stopCapture(false);
+      }
+    };
+    gamepadTimer = setInterval(tick, 80);
+  }
+  function saveBinding(action, device, value) {
+    const patch = {};
+    if (device === 'keyboard') {
+      patch[deviceKey(action, device)] = value;
+      patch[legacyKey(action)] = value;
+    } else {
+      patch[deviceKey(action, device)] = value;
+    }
+    LL.setSettings(patch);
+    setBindText(device, action, value);
+    refreshConflicts();
+  }
+  function refreshBindButton(action, device) {
+    const settings = LL.get('settings') || {};
+    const value = settings[deviceKey(action, device)] || defaultBindText(action, device);
+    setBindText(device, action, value);
+  }
+  function deviceKey(action, device) {
+    const map = { translate: { keyboard: 'hotkeyTranslate', gamepad: 'gamepadTranslate' }, autoStart: { keyboard: 'hotkeyAutoStart', gamepad: 'gamepadAutoStart' }, autoStop: { keyboard: 'hotkeyAutoStop', gamepad: 'gamepadAutoStop' } };
+    return map[action][device];
+  }
+  function legacyKey(action) {
+    return { translate: 'hotkeyTranslate', autoStart: 'hotkeyAutoStart', autoStop: 'hotkeyAutoStop' }[action];
+  }
+  function defaultBindText(action, device) {
+    return device === 'keyboard'
+      ? ({ translate: '⌘⇧T', autoStart: '⌘⇧A', autoStop: '⌘⇧S' }[action])
+      : '未绑定';
+  }
+  function formatKeyboardCombo(ev) {
+    const parts = [];
+    if (ev.metaKey) parts.push('⌘');
+    if (ev.ctrlKey) parts.push('⌃');
+    if (ev.altKey) parts.push('⌥');
+    if (ev.shiftKey) parts.push('⇧');
+    const key = normalizeKeyboardKey(ev);
+    if (!key) return '';
+    parts.push(key);
+    return parts.join('');
+  }
+  function normalizeKeyboardKey(ev) {
+    if (['Meta', 'Control', 'Alt', 'Shift'].includes(ev.key)) return '';
+    if (ev.key.length === 1) return ev.key.toUpperCase();
+    const map = { ' ': 'Space', Enter: 'Enter', Tab: 'Tab', Backspace: 'Backspace', Delete: 'Del', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Home: 'Home', End: 'End', PageUp: 'PgUp', PageDown: 'PgDn', Escape: 'Esc' };
+    if (map[ev.key]) return map[ev.key];
+    if (/^F\d{1,2}$/.test(ev.key)) return ev.key;
+    return ev.key;
+  }
+  function formatGamepadButton(pad, index) {
+    const labels = {
+      0: 'A', 1: 'B', 2: 'X', 3: 'Y', 4: 'LB', 5: 'RB', 6: 'LT', 7: 'RT',
+      8: 'Back', 9: 'Start', 10: 'LS', 11: 'RS', 12: '上', 13: '下', 14: '左', 15: '右',
+      16: 'Home'
+    };
+    return (pad.mapping === 'standard' && labels[index]) ? labels[index] : '按钮 ' + (index + 1);
+  }
+
+  function setMode(mode, persist) {
+    modeInputs.forEach(input => { input.checked = input.value === mode; });
+    autoIntervalField.classList.toggle('is-disabled', mode !== 'auto');
+    autoInterval.disabled = mode !== 'auto';
+    if (persist) {
+      LL.setSettings({ translateMode: mode });
+      LL.set({ auto: mode === 'auto' });
+      toast(mode === 'auto' ? '已切换为自动翻译' : '已切换为手动翻译');
+    }
+  }
+  function clampInterval(value) {
+    const n = Number(value) || 1;
+    return Math.min(10, Math.max(0.5, n));
+  }
+
+  // ---- API Key 显隐 ----
+  const apiKey = $('#apiKey');
+  $('#keyEye').addEventListener('click', () => { apiKey.type = apiKey.type === 'password' ? 'text' : 'password'; });
+
+  // ---- 测试连接 ----
+  $('#testTranslate').addEventListener('click', function () {
+    const s = $('#translateStatus');
+    s.innerHTML = '<span class="dot" style="background:var(--warn)"></span>正在测试…';
+    setTimeout(() => { s.innerHTML = '<span class="dot"></span>已连接 · <b>GPT-4o mini</b> · 延迟 240ms'; toast('连接正常'); }, 1100);
+  });
+
+  // ---- 字幕库：加载 / 拖放 / 移除 ----
+  const dropzone = $('#dropzone'), fileInput = $('#fileInput'), subList = $('#subList');
+  dropzone.addEventListener('click', () => fileInput.click());
+  ['dragover','dragenter'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
+  fileInput.addEventListener('change', () => addFiles(fileInput.files));
+  function addFiles(files) {
+    Array.prototype.forEach.call(files, f => {
+      const ext = (f.name.split('.').pop() || 'srt').toUpperCase();
+      const item = document.createElement('div');
+      item.className = 'sub-item';
+      item.innerHTML = '<span class="fmt">'+ext+'</span><div class="meta"><b>'+f.name+'</b><span>索引中…</span></div>'
+        + '<button class="rm" aria-label="移除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>';
+      subList.appendChild(item);
+      const cnt = 800 + Math.floor((f.size % 1500));
+      setTimeout(() => { item.querySelector('.meta span').textContent = cnt.toLocaleString() + ' 条 · 已索引'; }, 900);
+      bindRemove(item);
+      syncCount();
+    });
+    if (files.length) toast('已加载 ' + files.length + ' 个字幕文件');
+  }
+  function bindRemove(item) {
+    item.querySelector('.rm').addEventListener('click', () => { item.style.opacity = '0'; setTimeout(() => { item.remove(); syncCount(); }, 180); });
+  }
+  function syncCount() { LL.setSettings({ subsCount: subList.querySelectorAll('.sub-item').length }); }
+  $$('.sub-item').forEach(bindRemove);
+
+  // ---- 打开主面板 / 关闭 ----
+  $('#openMain').addEventListener('click', () => LL.openWindow('main'));
+  $('#closeDot').addEventListener('click', () => { try { window.close(); } catch(_){} });
+
+  // toast
+  let toastTimer; const toastEl = $('#toast'), toastMsg = $('#toastMsg');
+  function toast(msg) {
+    toastMsg.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+  }
+})();
+</script>
+</body>
+</html>
