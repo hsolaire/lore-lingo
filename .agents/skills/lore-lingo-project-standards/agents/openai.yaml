@@ -1,0 +1,4 @@
+interface:
+  display_name: "LensLingo 项目工程规范"
+  short_description: "LensLingo 前端平台设计、后端、测试与发布规范"
+  default_prompt: "使用 $lore-lingo-project-standards 按仓库规范规划、实现并验证此变更。"
