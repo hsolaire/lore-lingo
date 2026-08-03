@@ -22,8 +22,11 @@ import SettingsDrawer from '@/components/settings/SettingsDrawer.vue'
 .app {
   position: relative;
   z-index: 3;
-  width: 420px;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
+  min-width: 0;
+  min-height: 0;
   background: var(--glass);
   backdrop-filter: blur(40px) saturate(1.7);
   -webkit-backdrop-filter: blur(40px) saturate(1.7);
