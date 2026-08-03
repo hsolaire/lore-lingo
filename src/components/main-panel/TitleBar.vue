@@ -9,23 +9,29 @@ const { enter } = useLyricMode()
 const { drawerOpen, toggleDrawer } = useSettings()
 const { pinned, togglePin } = useTranslator()
 
-let win: any = null
+let win: ReturnType<typeof getCurrentWindow> | null = null
 try {
   win = getCurrentWindow()
 } catch (_) {
   // Tauri not available (dev mode without app context)
 }
 
-const closeWin   = () => win?.close()
+const closeWin = () => win?.close()
 const minimizeWin = () => win?.minimize()
+
+function startDragging(event: MouseEvent) {
+  if (!win || event.button !== 0) return
+  if (event.target instanceof Element && event.target.closest('[data-window-control]')) return
+  void win.startDragging().catch(() => {})
+}
 </script>
 
 <template>
-  <header class="titlebar">
-    <div class="traffic">
-      <i class="r" title="关闭" @click="closeWin"></i>
-      <i class="y" title="最小化" @click="minimizeWin"></i>
-      <i class="g"></i>
+  <header class="titlebar" @mousedown="startDragging">
+    <div class="traffic" data-window-control>
+      <button type="button" class="traffic-dot r" title="关闭" aria-label="关闭窗口" @click="closeWin"></button>
+      <button type="button" class="traffic-dot y" title="最小化" aria-label="最小化窗口" @click="minimizeWin"></button>
+      <span class="traffic-dot g" aria-hidden="true"></span>
     </div>
     <div class="brand">
       <span class="logo" aria-hidden="true"><Icon name="search" /></span>
@@ -33,11 +39,12 @@ const minimizeWin = () => win?.minimize()
       <span class="live">实时</span>
     </div>
     <span class="spacer"></span>
-    <button class="icon-btn" title="切换为屏幕歌词条" aria-label="切换为屏幕歌词条" @click="enter">
+    <button class="icon-btn" data-window-control title="打开翻译悬浮窗" aria-label="打开翻译悬浮窗" @click="enter">
       <Icon name="music" />
     </button>
     <button
       class="icon-btn"
+      data-window-control
       :class="{ active: pinned }"
       title="窗口置顶"
       aria-label="窗口置顶"
@@ -47,6 +54,7 @@ const minimizeWin = () => win?.minimize()
     </button>
     <button
       class="icon-btn"
+      data-window-control
       :class="{ active: drawerOpen }"
       title="设置"
       aria-label="设置"
@@ -61,14 +69,20 @@ const minimizeWin = () => win?.minimize()
 .titlebar {
   display: flex; align-items: center; gap: 10px;
   padding: 11px 14px;
-  -webkit-app-region: drag;
   border-bottom: 1px solid var(--border);
+  cursor: default;
+  user-select: none;
 }
-.traffic { display: flex; gap: 8px; -webkit-app-region: no-drag; }
-.traffic i { width: 12px; height: 12px; border-radius: 50%; display: block; cursor: pointer; }
+.traffic { display: flex; gap: 8px; }
+.traffic-dot {
+  width: 12px; height: 12px; border: 0; border-radius: 50%; display: block; padding: 0;
+}
+.traffic button { cursor: pointer; }
 .traffic .r { background: oklch(66% 0.17 25); }
 .traffic .y { background: oklch(80% 0.13 85); }
 .traffic .g { background: oklch(72% 0.15 145); cursor: default; }
+.traffic button:focus-visible,
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; }
 .brand .logo {
   width: 20px; height: 20px; border-radius: 6px;
@@ -87,7 +101,6 @@ const minimizeWin = () => win?.minimize()
   box-shadow: 0 0 0 0 var(--ok); animation: blink 1.8s ease-in-out infinite; }
 .spacer { flex: 1; }
 .icon-btn {
-  -webkit-app-region: no-drag;
   width: 30px; height: 30px; border-radius: 8px;
   border: 1px solid transparent; background: transparent; color: var(--muted);
   display: grid; place-items: center; cursor: pointer; transition: .15s;

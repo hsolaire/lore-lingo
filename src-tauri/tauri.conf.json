@@ -15,7 +15,7 @@
         "label": "main",
         "title": "LensLingo",
         "width": 420,
-        "height": 640,
+        "height": 480,
         "minWidth": 380,
         "minHeight": 480,
         "resizable": true,
