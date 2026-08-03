@@ -3,6 +3,7 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { emit } from '@tauri-apps/api/event'
 import { useToast } from './useToast'
 import { useSettings } from './useSettings'
+import { useCaptureSource } from './useCaptureSource'
 
 // peekSignal is only used within the overlay window now, but keep it
 // so LyricBar (which also runs in overlay) can still import this composable.
@@ -19,9 +20,11 @@ async function getOverlay(): Promise<WebviewWindow | null> {
 export function useLyricMode() {
   const { toast } = useToast()
   const { closeDrawer } = useSettings()
+  const { listOpen } = useCaptureSource()
 
   async function enter() {
     closeDrawer()
+    listOpen.value = false
     const overlay = await getOverlay()
     if (overlay) {
       await overlay.show()
