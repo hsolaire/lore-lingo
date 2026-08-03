@@ -1,8 +1,20 @@
 use base64::{engine::general_purpose, Engine as _};
 use screenshots::Screen;
+use serde::Serialize;
+use std::sync::Arc;
 use tauri::command;
 use tauri::Manager;
-use serde::Serialize;
+
+mod commands;
+mod desktop;
+mod domain;
+mod services;
+
+use commands::capture_translation::{
+    cancel_capture_translation, capture_selector_payload, complete_capture_translation,
+    start_capture_translation,
+};
+use services::capture_translation::CaptureTranslationService;
 
 #[cfg(target_os = "windows")]
 use windows::{
@@ -22,11 +34,11 @@ use windows::{
 
 #[cfg(target_os = "windows")]
 use windows::Win32::{
-    UI::Shell::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON},
     Graphics::Gdi::{
         CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
         ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
     },
+    UI::Shell::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON},
     UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL},
 };
 
@@ -55,9 +67,7 @@ fn capture_region(x: i32, y: i32, w: u32, h: u32) -> Result<String, String> {
         })
         .ok_or_else(|| "未找到对应屏幕".to_string())?;
 
-    let image = screen
-        .capture_area(x, y, w, h)
-        .map_err(|e| e.to_string())?;
+    let image = screen.capture_area(x, y, w, h).map_err(|e| e.to_string())?;
 
     // screenshots 0.8 返回 image::RgbaImage，用 Cursor + PNG 编码器编码
     let mut buf = std::io::Cursor::new(Vec::new());
@@ -99,10 +109,7 @@ fn list_windows() -> Vec<WindowInfo> {
         let results_ptr = &results as *const _ as isize;
 
         unsafe {
-            let _ = EnumWindows(
-                Some(enum_windows_callback),
-                LPARAM(results_ptr),
-            );
+            let _ = EnumWindows(Some(enum_windows_callback), LPARAM(results_ptr));
         }
 
         results.into_inner().unwrap_or_default()
@@ -133,9 +140,13 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
     GetWindowThreadProcessId(hwnd, Some(&mut pid));
 
     // Get exe path and name
-    let (exe_path, exe) = get_exe_info(pid)
-        .unwrap_or_else(|| ("".to_string(), "unknown.exe".to_string()));
-    let icon_b64 = if exe_path.is_empty() { None } else { get_exe_icon_b64(&exe_path) };
+    let (exe_path, exe) =
+        get_exe_info(pid).unwrap_or_else(|| ("".to_string(), "unknown.exe".to_string()));
+    let icon_b64 = if exe_path.is_empty() {
+        None
+    } else {
+        get_exe_icon_b64(&exe_path)
+    };
 
     let results = &*(lparam.0 as *const std::sync::Mutex<Vec<WindowInfo>>);
     if let Ok(mut list) = results.lock() {
@@ -159,19 +170,27 @@ fn get_exe_info(pid: u32) -> Option<(String, String)> {
         let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
         let mut buf = vec![0u16; 1024];
         let mut len = buf.len() as u32;
-        let query_result = QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len);
+        let query_result = QueryFullProcessImageNameW(
+            handle,
+            PROCESS_NAME_WIN32,
+            PWSTR(buf.as_mut_ptr()),
+            &mut len,
+        );
         let _ = CloseHandle(handle);
         query_result.ok()?;
         let full_path = String::from_utf16_lossy(&buf[..len as usize]);
-        let basename = Path::new(&full_path).file_name()?.to_string_lossy().to_string();
+        let basename = Path::new(&full_path)
+            .file_name()?
+            .to_string_lossy()
+            .to_string();
         Some((full_path, basename))
     }
 }
 
 #[cfg(target_os = "windows")]
 fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
-    use std::io::Cursor;
     use image::{ImageBuffer, RgbaImage};
+    use std::io::Cursor;
 
     unsafe {
         let wide: Vec<u16> = exe_path.encode_utf16().chain(std::iter::once(0)).collect();
@@ -203,7 +222,15 @@ fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
         let old = SelectObject(dc, hbmp);
         let draw_result = DrawIconEx(dc, 0, 0, shfi.hIcon, 32, 32, 0, None, DI_NORMAL);
         if draw_result.is_ok() {
-            GetDIBits(dc, hbmp, 0, 32, Some(pixels.as_mut_ptr() as *mut _), &mut bmi, DIB_RGB_COLORS);
+            GetDIBits(
+                dc,
+                hbmp,
+                0,
+                32,
+                Some(pixels.as_mut_ptr() as *mut _),
+                &mut bmi,
+                DIB_RGB_COLORS,
+            );
         }
         SelectObject(dc, old);
         let _ = DeleteObject(hbmp);
@@ -226,9 +253,21 @@ fn get_exe_icon_b64(exe_path: &str) -> Option<String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let capture_translation =
+        CaptureTranslationService::new().expect("failed to initialize capture translation service");
+
     tauri::Builder::default()
+        .manage(Arc::new(capture_translation))
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![capture_region, list_screens, list_windows])
+        .invoke_handler(tauri::generate_handler![
+            capture_region,
+            list_screens,
+            list_windows,
+            start_capture_translation,
+            capture_selector_payload,
+            complete_capture_translation,
+            cancel_capture_translation,
+        ])
         .setup(|app| {
             #[cfg(debug_assertions)]
             if let Some(webview) = app.get_webview_window("main") {
