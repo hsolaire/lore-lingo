@@ -1,0 +1,44 @@
+# Naive UI 前端规范
+
+## 依赖边界
+
+- 使用 `naive-ui` 作为共享交互组件库，使用 `lucide-vue-next` 作为 Vue 图标库。
+- 仅在代码确实使用其能力时添加 `@vueuse/core`；不得为主题切换单独引入状态框架。
+- 不得同时引入 Element Plus、Vuetify、Quasar、Ant Design Vue、PrimeVue 或另一套通用组件库。
+- 不得仅为 Naive UI 换肤引入 Tailwind CSS。把平台 token 和跨窗口样式放在 `src/styles/`。
+- 锁定依赖并审查 lockfile 与传递依赖。不得将已归档的 PrimeVue/Volt UI 作为新实现基础。
+
+## Provider 架构
+
+- 在主窗口和翻译悬浮窗各自的 Vue 根节点安装 `NConfigProvider`；两个 WebView 不共享运行时 Provider 状态。
+- 仅在实际使用时安装 `NMessageProvider`、`NDialogProvider`、`NNotificationProvider` 和 `NLoadingBarProvider`。
+- 把平台、明暗模式、减少动画和高对比度转换为类型化主题输入；从 Tauri capability 获取平台，不解析 UA。
+- 让弹层挂载在当前窗口的文档中。不得尝试把 Teleport、消息或对话框跨 WebView 渲染。
+- 为 Provider 组合建立一个共享组件或工厂，避免主窗口与翻译悬浮窗的主题配置漂移。
+
+## 组件选择
+
+- 优先使用 Naive UI 的 Button、Select、Switch、Tabs、Drawer、Dialog、Dropdown、Tooltip、Popover、Input 和 Form。
+- 保留窗口壳、标题栏、捕获选择器和翻译悬浮窗为项目组件；这些组件承载 Tauri 或平台特有行为。
+- 使用显式组件导入，除非仓库统一采用并验证自动导入工具。不得全量注册组件库。
+- 使用 `NIcon` 承载 Lucide 图标时保持稳定尺寸；图标按钮必须提供中文 tooltip 和可访问名称。
+- 不得用 Naive UI 默认主题直接定义最终视觉。使用类型化 `GlobalThemeOverrides` 建立 macOS 与 Windows 覆盖。
+
+## 状态和主题
+
+- 使用一个平台中立的语义 token 层，例如 surface、text、border、accent、danger、focus 和 elevation。
+- 把语义 token 映射到 Naive UI 全局与组件 token；不要在业务组件中散布平台颜色和圆角值。
+- 分离平台、明暗模式和用户偏好。平台选择布局与材质，明暗模式选择色值，辅助功能偏好控制透明度、对比度和动画。
+- 不得在 `localStorage` 中保存平台判断。可持久化用户显式选择的外观偏好，但系统模式必须可实时更新。
+
+## 可访问性
+
+- 不假设组件库自动满足完整无障碍要求。验证键盘顺序、可见焦点、Escape 关闭、焦点返回和屏幕阅读器名称。
+- 为错误和异步结果使用语义状态与 live region；颜色不得成为唯一状态信号。
+- 尊重减少动画、减少透明度和增加对比度。禁用效果时保持信息层级与控件边界清晰。
+- 对 Select、Dialog、Drawer、Dropdown 和翻译悬浮窗控制条添加组件级键盘测试。
+
+## 产品术语
+
+- 面向用户和新代码统一使用“翻译悬浮窗”与 `translation overlay`。
+- `LyricBar`、`useLyricMode`、`lyric:*` 和 `components/lyric/` 是待迁移的遗留标识；不得复制到新代码。
