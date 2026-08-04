@@ -97,8 +97,8 @@ pnpm install
 `src-tauri/icons/` 目录目前为空，Tauri 构建时必须有图标文件。最快的方法是用 Tauri CLI 自动生成：
 
 ```bash
-# 准备一张 1024×1024 的 PNG 源图，放到项目根目录，命名为 app-icon.png
-pnpm tauri icon app-icon.png
+# 使用项目根目录的 app-icon.svg 矢量母版生成；app-icon.png 是 1024×1024 位图预览
+pnpm tauri icon app-icon.svg
 ```
 
 这会自动生成 `icons/` 下所需的所有尺寸（`.png`、`.icns`、`.ico`）。
