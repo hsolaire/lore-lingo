@@ -32,6 +32,8 @@ import SettingsDrawer from '@/components/settings/SettingsDrawer.vue'
   -webkit-backdrop-filter: blur(40px) saturate(1.7);
   border: 1px solid var(--border-hi);
   border-radius: var(--radius);
+  clip-path: inset(0 round var(--radius));
+  isolation: isolate;
   box-shadow: var(--shadow);
   overflow: hidden;
   display: flex;

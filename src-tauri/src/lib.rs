@@ -3,7 +3,6 @@ use screenshots::Screen;
 use serde::Serialize;
 use std::sync::Arc;
 use tauri::command;
-use tauri::Manager;
 
 mod commands;
 mod desktop;
@@ -273,13 +272,6 @@ pub fn run() {
             complete_capture_translation,
             cancel_capture_translation,
         ])
-        .setup(|app| {
-            #[cfg(debug_assertions)]
-            if let Some(webview) = app.get_webview_window("main") {
-                webview.open_devtools();
-            }
-            Ok(())
-        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
