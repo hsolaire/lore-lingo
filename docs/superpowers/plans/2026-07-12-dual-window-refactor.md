@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Split the single-window LensLingo app into two independent Tauri windows — `main` (420×640 main panel) and `overlay` (fullscreen transparent lyric bar) — eliminating the blank-space bug caused by sharing one window between two incompatible layouts.
+**Goal:** Split the single-window LensLingo app into two independent Tauri windows — `main` (420×640 main panel) and `subtitle` (content-sized transparent Subtitle Overlay) — eliminating the blank-space bug caused by sharing one window between two incompatible layouts.
 
-**Architecture:** A new `overlay` Tauri window is defined in `tauri.conf.json` with its own Vite entry point (`overlay.html` / `src/overlay.ts`). The `main` window continues to host `App.vue` (main panel only). `useLyricMode` is refactored to open/close/communicate with the overlay window via Tauri's event system instead of toggling Vue state. Shared reactive state (`useTranslator`, `useCaptureSource`) is replaced by Tauri events for cross-window sync.
+**Architecture:** A new `subtitle` Tauri window is defined in `tauri.conf.json` with its own Vite entry point (`subtitle.html` / `src/subtitle.ts`). The `main` window continues to host `App.vue` (main panel only). `useSubtitle` is refactored to open/close/communicate with the subtitle window via Tauri's event system instead of toggling Vue state. Shared reactive state (`useTranslator`, `useCaptureSource`) is replaced by Tauri events for cross-window sync.
 
 **Tech Stack:** Tauri 2, Vue 3.5, TypeScript 5, Vite 5, `@tauri-apps/api` (window, event APIs)
 
@@ -23,25 +23,25 @@
 ## File Map
 
 ### Created
-- `overlay.html` — second Vite HTML entry for overlay window
-- `src/overlay.ts` — mounts `OverlayApp.vue`
-- `src/OverlayApp.vue` — root component for overlay window (just `LyricBar` + `AppToast`)
-- `src/composables/useOverlayBridge.ts` — overlay-side: listens to events from main window, re-emits back
+- `subtitle.html` — second Vite HTML entry for subtitle window
+- `src/subtitle.ts` — mounts `SubtitleApp.vue`
+- `src/SubtitleApp.vue` — root component for subtitle window (just `SubtitleBar` + `AppToast`)
+- `src/composables/useSubtitleBridge.ts` — subtitle-side: listens to events from main window, re-emits back
 - `docs/superpowers/plans/2026-07-12-dual-window-refactor.md` — this file
 
 ### Modified
-- `src-tauri/tauri.conf.json` — add `overlay` window definition
-- `vite.config.ts` — add `overlay.html` as second Rollup input
-- `src/composables/useLyricMode.ts` — replace Vue state toggle with `WebviewWindow` open/close + `emit`
-- `src/composables/useTranslator.ts` — emit translator state changes as Tauri events so overlay stays in sync
-- `src/App.vue` — remove `LyricBar` import; remove `lyricMode` body-class watcher
-- `src/components/lyric/LyricControls.vue` — `exit`/`close` now emit Tauri event to close overlay & show main
+- `src-tauri/tauri.conf.json` — add `subtitle` window definition
+- `vite.config.ts` — add `subtitle.html` as second Rollup input
+- `src/composables/useSubtitle.ts` — replace Vue state toggle with `WebviewWindow` open/close + `emit`
+- `src/composables/useTranslator.ts` — emit translator state changes as Tauri events so subtitle stays in sync
+- `src/App.vue` — remove `SubtitleBar` import and the old single-window mode watcher
+- `src/components/subtitle/SubtitleControls.vue` — `hide`/`close` emit Tauri events for the independent subtitle window
 
 ### Unchanged (keep as-is)
-- `src/components/lyric/LyricBar.vue`
-- `src/components/lyric/LyricBox.vue`
+- `src/components/subtitle/SubtitleBar.vue`
+- `src/components/subtitle/SubtitleContent.vue`
 - `src/components/main-panel/*` (all)
-- `src/composables/useLyricDrag.ts`
+- `src/composables/useSubtitleWindow.ts`
 - `src/composables/useCaptureSource.ts`
 - `src/composables/useSettings.ts`
 - `src/composables/useToast.ts`
@@ -51,33 +51,38 @@
 
 ---
 
-## Task 1: Add overlay window to tauri.conf.json
+## Task 1: Add subtitle window to tauri.conf.json
 
 **Files:**
 - Modify: `src-tauri/tauri.conf.json`
 
-**Goal:** Define the `overlay` window — fullscreen, transparent, always-on-top, no decorations. It starts hidden (`visible: false`) so it only appears when the user clicks the lyric-mode button.
+**Goal:** Define the `subtitle` window as a content-sized, transparent, always-on-top, undecorated window. It starts hidden (`visible: false`) and is independent from the main window.
 
-- [ ] **Step 1: Add overlay window config**
+- [ ] **Step 1: Add subtitle window config**
 
 Open `src-tauri/tauri.conf.json`. In the `app.windows` array, append after the existing `main` entry:
 
 ```json
 {
-  "label": "overlay",
-  "title": "LensLingo Overlay",
-  "url": "overlay.html",
-  "width": 1920,
-  "height": 1080,
+  "label": "subtitle",
+  "title": "LensLingo 悬浮字幕",
+  "url": "subtitle.html",
+  "width": 808,
+  "height": 204,
+  "minWidth": 328,
+  "maxWidth": 1248,
   "fullscreen": false,
-  "resizable": false,
+  "resizable": true,
+  "maximizable": false,
+  "minimizable": false,
   "decorations": false,
   "transparent": true,
   "shadow": false,
   "alwaysOnTop": true,
   "skipTaskbar": true,
   "visible": false,
-  "focus": false
+  "focus": false,
+  "center": true
 }
 ```
 
@@ -101,20 +106,25 @@ The full `app.windows` array should now look like:
     "center": true
   },
   {
-    "label": "overlay",
-    "title": "LensLingo Overlay",
-    "url": "overlay.html",
-    "width": 1920,
-    "height": 1080,
+    "label": "subtitle",
+    "title": "LensLingo 悬浮字幕",
+    "url": "subtitle.html",
+    "width": 808,
+    "height": 204,
+    "minWidth": 328,
+    "maxWidth": 1248,
     "fullscreen": false,
-    "resizable": false,
+    "resizable": true,
+    "maximizable": false,
+    "minimizable": false,
     "decorations": false,
     "transparent": true,
     "shadow": false,
     "alwaysOnTop": true,
     "skipTaskbar": true,
     "visible": false,
-    "focus": false
+    "focus": false,
+    "center": true
   }
 ]
 ```
@@ -132,22 +142,22 @@ Expected output: `OK`
 
 ```bash
 git add src-tauri/tauri.conf.json
-git commit -m "feat: add overlay window definition to tauri config"
+git commit -m "feat: add subtitle window definition to tauri config"
 ```
 
 ---
 
-## Task 2: Add overlay HTML entry and Vite config
+## Task 2: Add subtitle HTML entry and Vite config
 
 **Files:**
-- Create: `overlay.html`
+- Create: `subtitle.html`
 - Modify: `vite.config.ts`
 
-**Goal:** Vite needs to know about the second entry point so it bundles `overlay.html` alongside `index.html` for both dev and production.
+**Goal:** Vite needs to know about the second entry point so it bundles `subtitle.html` alongside `index.html` for both dev and production.
 
-- [ ] **Step 1: Create overlay.html**
+- [ ] **Step 1: Create subtitle.html**
 
-Create `overlay.html` at the project root (same level as `index.html`). Copy `index.html` exactly and change only the script src:
+Create `subtitle.html` at the project root (same level as `index.html`). Copy `index.html` exactly and change only the script src:
 
 ```html
 <!doctype html>
@@ -155,16 +165,16 @@ Create `overlay.html` at the project root (same level as `index.html`). Copy `in
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LensLingo Overlay</title>
+    <title>LensLingo 悬浮字幕</title>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/overlay.ts"></script>
+    <script type="module" src="/src/subtitle.ts"></script>
   </body>
 </html>
 ```
 
-- [ ] **Step 2: Add overlay as second Vite input**
+- [ ] **Step 2: Add subtitle as second Vite input**
 
 Open `vite.config.ts`. Add a `build.rollupOptions.input` field. The full modified `vite.config.ts`:
 
@@ -195,7 +205,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
-        overlay: fileURLToPath(new URL('./overlay.html', import.meta.url)),
+        subtitle: fileURLToPath(new URL('./subtitle.html', import.meta.url)),
       },
     },
   },
@@ -209,152 +219,142 @@ export default defineConfig({
 pnpm dev
 ```
 
-Expected: Vite starts on port 5173 with no errors. Visit `http://localhost:5173/overlay.html` — it will 404 on the script (not yet created) but the HTML should load.
+Expected: Vite starts on port 5173 with no errors. Visit `http://localhost:5173/subtitle.html` — it will 404 on the script (not yet created) but the HTML should load.
 
 Kill the dev server with Ctrl+C.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add overlay.html vite.config.ts
-git commit -m "feat: add overlay.html entry and configure Vite multi-page build"
+git add subtitle.html vite.config.ts
+git commit -m "feat: add subtitle.html entry and configure Vite multi-page build"
 ```
 
 ---
 
-## Task 3: Create overlay Vue entry point
+## Task 3: Create subtitle Vue entry point
 
 **Files:**
-- Create: `src/overlay.ts`
-- Create: `src/OverlayApp.vue`
+- Create: `src/subtitle.ts`
+- Create: `src/SubtitleApp.vue`
 
-**Goal:** The overlay window gets its own Vue app that only mounts `LyricBar` and `AppToast`. It does NOT include `MainPanel`, `CaptureFrame`, or anything from the main panel.
+**Goal:** The subtitle window gets its own Vue app that only mounts `SubtitleBar` and `AppToast`. It does NOT include `MainPanel`, `CaptureFrame`, or anything from the main panel.
 
-- [ ] **Step 1: Create src/overlay.ts**
+- [ ] **Step 1: Create src/subtitle.ts**
 
 ```ts
 import { createApp } from 'vue'
 import './styles/global.css'
-import OverlayApp from './OverlayApp.vue'
+import SubtitleApp from './SubtitleApp.vue'
 
-createApp(OverlayApp).mount('#app')
+createApp(SubtitleApp).mount('#app')
 ```
 
-- [ ] **Step 2: Create src/OverlayApp.vue**
+- [ ] **Step 2: Create src/SubtitleApp.vue**
 
 ```vue
 <script setup lang="ts">
 import AppToast from '@/components/AppToast.vue'
-import LyricBar from '@/components/lyric/LyricBar.vue'
+import SubtitleBar from '@/components/subtitle/SubtitleBar.vue'
 </script>
 
 <template>
-  <LyricBar />
+  <SubtitleBar />
   <AppToast />
 </template>
 ```
 
-- [ ] **Step 3: Verify overlay page loads in browser**
+- [ ] **Step 3: Verify subtitle page loads in browser**
 
 ```bash
 pnpm dev
 ```
 
-Open `http://localhost:5173/overlay.html` in a browser. Expected: LyricBar renders (with placeholder text). No console errors.
+Open `http://localhost:5173/subtitle.html` in a browser. Expected: SubtitleBar renders (with placeholder text). No console errors.
 
 Kill dev server.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/overlay.ts src/OverlayApp.vue
-git commit -m "feat: create overlay Vue entry with LyricBar only"
+git add src/subtitle.ts src/SubtitleApp.vue
+git commit -m "feat: create subtitle Vue entry with SubtitleBar only"
 ```
 
 ---
 
-## Task 4: Refactor useLyricMode — main window side
+## Task 4: Refactor useSubtitle — main window side
 
 **Files:**
-- Modify: `src/composables/useLyricMode.ts`
+- Modify: `src/composables/useSubtitle.ts`
 
-**Goal:** Replace the single-window Vue state toggle with Tauri `WebviewWindow` show/hide calls. The main window emits a `lyric:enter` event when switching to lyric mode, and `lyric:exit` / `lyric:close` when returning.
+**Goal:** Replace the single-window Vue state toggle with Tauri `WebviewWindow` show/hide calls. The main window emits `subtitle:show`, `subtitle:hide`, and `subtitle:close` events for the independent Subtitle Overlay.
 
-The overlay window is already defined in `tauri.conf.json` — we use `WebviewWindow.getByLabel('overlay')` to get a handle to it without creating a new window.
+The subtitle window is already defined in `tauri.conf.json` — we use `WebviewWindow.getByLabel('subtitle')` to get a handle to it without creating a new window.
 
-- [ ] **Step 1: Rewrite useLyricMode.ts**
+- [ ] **Step 1: Rewrite useSubtitle.ts**
 
 ```ts
-import { ref } from 'vue'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { emit } from '@tauri-apps/api/event'
 import { useToast } from './useToast'
 import { useSettings } from './useSettings'
 
-// peekSignal is only used within the overlay window now, but keep it
-// so LyricBar (which also runs in overlay) can still import this composable.
-const peekSignal = ref(0)
-
-async function getOverlay(): Promise<WebviewWindow | null> {
+async function getSubtitleWindow(): Promise<WebviewWindow | null> {
   try {
-    return WebviewWindow.getByLabel('overlay')
+    return WebviewWindow.getByLabel('subtitle')
   } catch (_) {
     return null
   }
 }
 
-export function useLyricMode() {
+export function useSubtitle() {
   const { toast } = useToast()
   const { closeDrawer } = useSettings()
 
-  async function enter() {
+  async function show() {
     closeDrawer()
-    const overlay = await getOverlay()
-    if (overlay) {
-      await overlay.show()
-      await overlay.setFocus()
+    const subtitleWindow = await getSubtitleWindow()
+    if (subtitleWindow) {
+      await subtitleWindow.show()
     }
-    await emit('lyric:enter', {})
-    toast('已切换为屏幕歌词条 · 置顶显示')
+    await emit('subtitle:show', {})
+    toast('已打开悬浮字幕')
   }
 
-  async function exit() {
-    const overlay = await getOverlay()
-    if (overlay) await overlay.hide()
-    await emit('lyric:exit', {})
+  async function hide() {
+    const subtitleWindow = await getSubtitleWindow()
+    if (subtitleWindow) await subtitleWindow.hide()
+    await emit('subtitle:hide', {})
     toast('已回到面板视图')
   }
 
   async function close() {
-    const overlay = await getOverlay()
-    if (overlay) await overlay.hide()
-    await emit('lyric:close', {})
-    toast('歌词条已关闭')
+    const subtitleWindow = await getSubtitleWindow()
+    if (subtitleWindow) await subtitleWindow.hide()
+    await emit('subtitle:close', {})
+    toast('悬浮字幕已关闭')
   }
 
-  // lyricMode ref is no longer used in main window — kept for API compatibility
-  // with any component that imports it (they can safely ignore it)
-  const lyricMode = ref(false)
-
-  return { lyricMode, peekSignal, enter, exit, close }
+  return { show, hide, close }
 }
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add src/composables/useLyricMode.ts
-git commit -m "refactor: useLyricMode now shows/hides overlay window via Tauri API"
+git add src/composables/useSubtitle.ts
+git commit -m "refactor: useSubtitle now shows/hides subtitle window via Tauri API"
 ```
 
 ---
 
-## Task 5: Simplify App.vue — remove lyric mode from main window
+## Task 5: Simplify App.vue — keep the Subtitle Overlay out of the main window
 
 **Files:**
 - Modify: `src/App.vue`
 
-**Goal:** The main window never renders `LyricBar` anymore. Remove it entirely from `App.vue`. The `lyric-mode` body class is no longer needed either.
+**Goal:** The main window never renders `SubtitleBar`. Remove it entirely from `App.vue` so the Subtitle Overlay remains an independent native window.
 
 - [ ] **Step 1: Rewrite App.vue**
 
@@ -384,21 +384,21 @@ watchEffect(() => {
 
 ```bash
 git add src/App.vue
-git commit -m "refactor: remove LyricBar from main window App.vue"
+git commit -m "refactor: remove SubtitleBar from main window App.vue"
 ```
 
 ---
 
-## Task 6: Create useOverlayBridge — overlay-side event listener
+## Task 6: Create useSubtitleBridge — subtitle-side event listener
 
 **Files:**
-- Create: `src/composables/useOverlayBridge.ts`
+- Create: `src/composables/useSubtitleBridge.ts`
 
-**Goal:** The overlay window needs to react to events from the main window. `useOverlayBridge` listens for `lyric:enter` (trigger peek), `lyric:exit` / `lyric:close` (hide self), and `translator:update` (sync text/language state). It also listens for `lyric:peek` to trigger the controls peek animation.
+**Goal:** The subtitle window needs to react to events from the main window. `useSubtitleBridge` listens for `subtitle:show` (trigger peek), `subtitle:hide` / `subtitle:close` (hide self), and `translator:update` (sync text/language state). It also listens for `subtitle:peek` to trigger the controls peek animation.
 
-This composable is called once in `OverlayApp.vue` on mount.
+This composable is called once in `SubtitleApp.vue` on mount.
 
-- [ ] **Step 1: Create src/composables/useOverlayBridge.ts**
+- [ ] **Step 1: Create src/composables/useSubtitleBridge.ts**
 
 ```ts
 import { onMounted, onUnmounted } from 'vue'
@@ -414,7 +414,7 @@ export type TranslatorPayload = {
   pinned: boolean
 }
 
-export function useOverlayBridge(onPeek: () => void) {
+export function useSubtitleBridge(onPeek: () => void) {
   const { srcText, tgtText, langA, langB, pinned } = useTranslator()
   const unlisten: UnlistenFn[] = []
 
@@ -427,15 +427,15 @@ export function useOverlayBridge(onPeek: () => void) {
         langB.value    = payload.langB
         pinned.value   = payload.pinned
       }),
-      await listen('lyric:enter', () => {
+      await listen('subtitle:show', () => {
         onPeek()
       }),
-      await listen('lyric:peek', () => {
+      await listen('subtitle:peek', () => {
         onPeek()
       }),
     )
 
-    // Keep overlay always-on-top when shown
+    // Keep subtitle always-on-top when shown
     try {
       await getCurrentWindow().setAlwaysOnTop(true)
     } catch (_) {}
@@ -447,38 +447,38 @@ export function useOverlayBridge(onPeek: () => void) {
 }
 ```
 
-- [ ] **Step 2: Wire useOverlayBridge into OverlayApp.vue**
+- [ ] **Step 2: Wire useSubtitleBridge into SubtitleApp.vue**
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppToast from '@/components/AppToast.vue'
-import LyricBar from '@/components/lyric/LyricBar.vue'
-import { useOverlayBridge } from '@/composables/useOverlayBridge'
+import SubtitleBar from '@/components/subtitle/SubtitleBar.vue'
+import { useSubtitleBridge } from '@/composables/useSubtitleBridge'
 
 const peekTrigger = ref(0)
 function triggerPeek() { peekTrigger.value++ }
 
-useOverlayBridge(triggerPeek)
+useSubtitleBridge(triggerPeek)
 </script>
 
 <template>
-  <LyricBar :external-peek="peekTrigger" />
+  <SubtitleBar :external-peek="peekTrigger" />
   <AppToast />
 </template>
 ```
 
-- [ ] **Step 3: Update LyricBar.vue to accept externalPeek prop**
+- [ ] **Step 3: Update SubtitleBar.vue to accept externalPeek prop**
 
-In `src/components/lyric/LyricBar.vue`, replace the `peekSignal` watch with a prop watch:
+In `src/components/subtitle/SubtitleBar.vue`, replace the `peekSignal` watch with a prop watch:
 
 ```vue
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useLyricDrag } from '@/composables/useLyricDrag'
+import { useSubtitleWindow } from '@/composables/useSubtitleWindow'
 import { useTranslator } from '@/composables/useTranslator'
-import LyricControls from './LyricControls.vue'
-import LyricBox from './LyricBox.vue'
+import SubtitleControls from './SubtitleControls.vue'
+import SubtitleContent from './SubtitleContent.vue'
 
 const props = defineProps<{ externalPeek?: number }>()
 
@@ -497,7 +497,7 @@ function onLeave() {
   peekActive.value = false
 }
 
-const { placed, dragging, pos, size, onDragBarMousedown, onResizeMousedown } = useLyricDrag(barEl, () => peek())
+const { placed, dragging, pos, size, onDragBarMousedown, onResizeMousedown } = useSubtitleWindow(barEl, () => peek())
 
 watch(() => props.externalPeek, () => peek())
 
@@ -513,7 +513,7 @@ function onFlip() {
 <template>
   <div
     ref="barEl"
-    class="lyric-bar"
+    class="subtitle-bar"
     :class="{ placed, dragging, peek: peekActive }"
     :style="{
       ...(placed ? { left: pos.x + 'px', top: pos.y + 'px' } : {}),
@@ -522,8 +522,8 @@ function onFlip() {
     @mouseenter="onEnter"
     @mouseleave="onLeave"
   >
-    <LyricControls @flip="onFlip" />
-    <LyricBox
+    <SubtitleControls @flip="onFlip" />
+    <SubtitleContent
       :swap="swapping"
       @dragbar-mousedown="onDragBarMousedown"
       @resize-mousedown="onResizeMousedown"
@@ -532,7 +532,7 @@ function onFlip() {
 </template>
 
 <style scoped>
-.lyric-bar {
+.subtitle-bar {
   position: fixed;
   left: 50%; top: 40px;
   transform: translateX(-50%);
@@ -542,12 +542,12 @@ function onFlip() {
   flex-direction: column;
   align-items: stretch;
 }
-.lyric-bar.placed { transform: none; }
-.lyric-bar.dragging { user-select: none; }
-.lyric-bar.dragging :deep(.lyric-ctrl) { opacity: 0 !important; }
+.subtitle-bar.placed { transform: none; }
+.subtitle-bar.dragging { user-select: none; }
+.subtitle-bar.dragging :deep(.subtitle-ctrl) { opacity: 0 !important; }
 
-.lyric-bar:hover :deep(.lyric-ctrl),
-.lyric-bar.peek :deep(.lyric-ctrl) {
+.subtitle-bar:hover :deep(.subtitle-ctrl),
+.subtitle-bar.peek :deep(.subtitle-ctrl) {
   opacity: 1; transform: translateY(0); pointer-events: auto;
 }
 </style>
@@ -556,8 +556,8 @@ function onFlip() {
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/composables/useOverlayBridge.ts src/OverlayApp.vue src/components/lyric/LyricBar.vue
-git commit -m "feat: overlay bridge for cross-window event sync; LyricBar accepts externalPeek prop"
+git add src/composables/useSubtitleBridge.ts src/SubtitleApp.vue src/components/subtitle/SubtitleBar.vue
+git commit -m "feat: subtitle bridge for cross-window event sync; SubtitleBar accepts externalPeek prop"
 ```
 
 ---
@@ -567,7 +567,7 @@ git commit -m "feat: overlay bridge for cross-window event sync; LyricBar accept
 **Files:**
 - Modify: `src/composables/useTranslator.ts`
 
-**Goal:** When the main window changes `srcText`, `tgtText`, `langA`, `langB`, or `pinned`, it emits a `translator:update` Tauri event. The overlay listens (via `useOverlayBridge`) and updates its local refs. This keeps both windows in sync without a shared process.
+**Goal:** When the main window changes `srcText`, `tgtText`, `langA`, `langB`, or `pinned`, it emits a `translator:update` Tauri event. The subtitle listens (via `useSubtitleBridge`) and updates its local refs. This keeps both windows in sync without a shared process.
 
 - [ ] **Step 1: Rewrite useTranslator.ts**
 
@@ -600,7 +600,7 @@ async function broadcastState() {
 }
 
 // Watch all shared state and broadcast on change.
-// Guard with isBroadcasting to prevent the overlay's listen handler
+// Guard with isBroadcasting to prevent the subtitle's listen handler
 // from re-emitting when it updates local refs.
 watch([srcText, tgtText, langA, langB, pinned], () => {
   broadcastState()
@@ -635,33 +635,33 @@ export function useTranslator() {
 
 ```bash
 git add src/composables/useTranslator.ts
-git commit -m "feat: broadcast translator state changes as Tauri events for overlay sync"
+git commit -m "feat: broadcast translator state changes as Tauri events for subtitle sync"
 ```
 
 ---
 
-## Task 8: Fix LyricControls — exit/close via Tauri event
+## Task 8: Fix SubtitleControls — exit/close via Tauri event
 
 **Files:**
-- Modify: `src/components/lyric/LyricControls.vue`
+- Modify: `src/components/subtitle/SubtitleControls.vue`
 
-**Goal:** In the overlay window, `useLyricMode().exit()` and `close()` need to hide the overlay window AND notify the main window. Currently `exit()` in `useLyricMode` does this already via `emit('lyric:exit')`. But `LyricControls` also calls `togglePin` — in the overlay, `getCurrentWindow()` returns the overlay window, which is correct (we want overlay to be pinned). No change needed for pin.
+**Goal:** In the subtitle window, `useSubtitle().hide()` and `close()` hide the subtitle window and notify the main window. `SubtitleControls` also calls `togglePin`; in the subtitle window, `getCurrentWindow()` correctly targets that independent window.
 
-The only change: `LyricControls` no longer needs to import `useLyricMode` from main-window context — it works the same way since `useLyricMode().exit()` calls `WebviewWindow.getByLabel('overlay').hide()` which works from either window.
+The same `useSubtitle` API works from either window because `hide()` resolves the window by its `subtitle` label.
 
-- [ ] **Step 1: Verify LyricControls.vue needs no changes**
+- [ ] **Step 1: Verify SubtitleControls.vue needs no changes**
 
-Read `src/components/lyric/LyricControls.vue`. Confirm:
-- It imports `useLyricMode` → calls `exit()` and `close()` 
-- Both `exit()` and `close()` in refactored `useLyricMode` already call `overlay.hide()` + emit event
-- `togglePin` calls `getCurrentWindow().setAlwaysOnTop()` — in overlay context this correctly targets the overlay window
+Read `src/components/subtitle/SubtitleControls.vue`. Confirm:
+- It imports `useSubtitle` and calls `hide()` and `close()`
+- Both methods resolve the `subtitle` window, hide it, and emit the corresponding event
+- `togglePin` calls `getCurrentWindow().setAlwaysOnTop()` — in subtitle context this correctly targets the subtitle window
 
 No code changes needed. This task is a verification checkpoint.
 
 - [ ] **Step 2: Commit checkpoint note**
 
 ```bash
-git commit --allow-empty -m "chore: verify LyricControls works without changes in overlay context"
+git commit --allow-empty -m "chore: verify SubtitleControls works without changes in subtitle context"
 ```
 
 ---
@@ -676,42 +676,42 @@ git commit --allow-empty -m "chore: verify LyricControls works without changes i
 pnpm tauri:dev
 ```
 
-Expected: Two windows launch — the main panel (420×640) and the overlay (hidden initially).
+Expected: Two windows launch — the main panel (420×640) and the subtitle (hidden initially).
 
-- [ ] **Step 2: Test enter lyric mode**
+- [ ] **Step 2: Test opening the Subtitle Overlay**
 
 Click the music note (♪) button in the main panel title bar.
 
 Expected:
-- Overlay window appears over the desktop with the lyric bar
+- Subtitle window appears over the desktop with the subtitle bar
 - Main panel remains visible behind it (or minimizes — depends on UX preference)
-- Toast "已切换为屏幕歌词条 · 置顶显示" appears in overlay
+- Toast "已打开悬浮字幕" appears in the subtitle window
 
-- [ ] **Step 3: Test exit lyric mode**
+- [ ] **Step 3: Test hiding the Subtitle Overlay**
 
-Hover over the lyric bar to show `LyricControls`. Click the layout (回到面板) button.
+Hover over the subtitle bar to show `SubtitleControls`. Click the layout (回到面板) button.
 
 Expected:
-- Overlay window hides
+- Subtitle window hides
 - Toast "已回到面板视图" appears in main window
 
 - [ ] **Step 4: Test close**
 
-Enter lyric mode again. Click the X button in `LyricControls`.
+Open the Subtitle Overlay again. Click the X button in `SubtitleControls`.
 
 Expected:
-- Overlay window hides
-- Toast "歌词条已关闭" appears in main window
+- Subtitle window hides
+- Toast "悬浮字幕已关闭" appears in main window
 
 - [ ] **Step 5: Test translator sync**
 
-While in lyric mode, verify the text shown in the overlay matches the main panel (both show the same `srcText` / `tgtText`).
+While the Subtitle Overlay is open, verify its text matches the main panel (both show the same `srcText` / `tgtText`).
 
 - [ ] **Step 6: Commit if all passing**
 
 ```bash
 git add -A
-git commit -m "feat: dual-window architecture complete — overlay window for lyric mode"
+git commit -m "feat: complete independent subtitle window architecture"
 ```
 
 ---
@@ -719,20 +719,20 @@ git commit -m "feat: dual-window architecture complete — overlay window for ly
 ## Self-Review
 
 **Spec coverage:**
-- ✅ Overlay window defined in tauri.conf.json (Task 1)
-- ✅ Second Vite entry for overlay (Task 2)
-- ✅ Overlay Vue app mounts only LyricBar (Task 3)
-- ✅ Main window never shows LyricBar (Task 5)
-- ✅ Show/hide overlay on mode switch (Task 4)
+- ✅ Subtitle window defined in tauri.conf.json (Task 1)
+- ✅ Second Vite entry for subtitle (Task 2)
+- ✅ Subtitle Vue app mounts only SubtitleBar (Task 3)
+- ✅ Main window never shows SubtitleBar (Task 5)
+- ✅ Show/hide the independent subtitle window (Task 4)
 - ✅ Cross-window state sync for translator (Tasks 6, 7)
-- ✅ LyricControls exit/close hides overlay (Task 8)
+- ✅ SubtitleControls exit/close hides subtitle (Task 8)
 - ✅ Peek animation works via externalPeek prop (Task 6)
-- ✅ No blank space — overlay is a separate fullscreen transparent window
+- ✅ No blank space or desktop-sized input boundary — subtitle is a separate content-sized window
 
 **Placeholder scan:** No TBD or TODO found.
 
 **Type consistency:**
-- `TranslatorPayload` defined in `useOverlayBridge.ts` and used in `listen<TranslatorPayload>` — ✅
-- `externalPeek?: number` prop in `LyricBar`, passed as `:external-peek="peekTrigger"` from `OverlayApp` — ✅
-- `WebviewWindow.getByLabel('overlay')` — returns `WebviewWindow | null` in Tauri v2 — ✅
+- `TranslatorPayload` defined in `useSubtitleBridge.ts` and used in `listen<TranslatorPayload>` — ✅
+- `externalPeek?: number` prop in `SubtitleBar`, passed as `:external-peek="peekTrigger"` from `SubtitleApp` — ✅
+- `WebviewWindow.getByLabel('subtitle')` — returns `WebviewWindow | null` in Tauri v2 — ✅
 - `emit('translator:update', payload)` matches `listen<TranslatorPayload>('translator:update', ...)` — ✅

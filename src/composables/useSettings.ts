@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-// 单例设置抽屉状态：主面板标题栏「设置」按钮与「进入歌词条」需共享开合。
+// 单例设置抽屉状态：打开悬浮字幕时也需要关闭主面板设置。
 const drawerOpen = ref(false)
 
 export function useSettings() {

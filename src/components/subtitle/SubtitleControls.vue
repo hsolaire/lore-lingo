@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { emit } from '@tauri-apps/api/event'
-import { useLyricMode } from '@/composables/useLyricMode'
-import { useTranslator } from '@/composables/useTranslator'
+import { useSubtitle } from '@/composables/useSubtitle'
 import Icon from '@/components/ui/Icon.vue'
 
-const emitVue = defineEmits<{ flip: [] }>()
+defineProps<{ pinned: boolean }>()
 
-const { exit, close } = useLyricMode()
-const { pinned } = useTranslator()
+const emitVue = defineEmits<{
+  flip: []
+  'toggle-pinned': []
+}>()
+
+const { hide, close } = useSubtitle()
 
 // Fix I-1: reselect must run in the main window (body class, useCaptureSource
 // singleton). Emit an event so App.vue handles it there.
@@ -15,16 +18,10 @@ async function requestReselect() {
   try { await emit('capture:reselect', {}) } catch (_) {}
 }
 
-// Fix I-2: togglePin calls getCurrentWindow() — in the overlay that would pin
-// the overlay, not the main window. Emit an event; App.vue calls the real
-// togglePin. The updated pinned ref propagates back via translator:update.
-async function requestTogglePin() {
-  try { await emit('pin:toggle', {}) } catch (_) {}
-}
 </script>
 
 <template>
-  <div class="lyric-ctrl">
+  <div class="subtitle-controls">
     <span class="cnow"><span class="dot"></span>VLC · 实时</span>
     <button class="cbtn" title="重选捕获" aria-label="重选捕获" @click="requestReselect">
       <Icon name="crop" />
@@ -35,28 +32,30 @@ async function requestTogglePin() {
     <button
       class="cbtn"
       :class="{ active: pinned }"
-      title="窗口置顶"
-      aria-label="窗口置顶"
-      @click="requestTogglePin"
+      title="悬浮字幕置顶"
+      aria-label="悬浮字幕置顶"
+      @click="emitVue('toggle-pinned')"
     >
       <Icon name="pin" />
     </button>
     <span class="cdiv"></span>
-    <button class="cbtn" title="回到面板" aria-label="回到面板视图" @click="exit">
+    <button class="cbtn" title="回到面板" aria-label="回到面板视图" @click="hide">
       <Icon name="layout" />
     </button>
-    <button class="cbtn danger" title="关闭歌词条" aria-label="关闭歌词条" @click="close">
+    <button class="cbtn danger" title="关闭悬浮字幕" aria-label="关闭悬浮字幕" @click="close">
       <Icon name="x" />
     </button>
   </div>
 </template>
 
 <style scoped>
-.lyric-ctrl {
+.subtitle-controls {
   -webkit-app-region: no-drag;
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  left: 50%;
   display: flex; align-items: center; gap: 6px;
-  align-self: center;
-  margin-bottom: 8px;
   padding: 5px;
   background: var(--glass-strong);
   backdrop-filter: blur(30px) saturate(1.6);
@@ -64,7 +63,7 @@ async function requestTogglePin() {
   border: 1px solid var(--border-hi);
   border-radius: 999px;
   box-shadow: 0 12px 30px oklch(12% 0.02 260 / 0.5);
-  opacity: 0; transform: translateY(6px);
+  opacity: 0; transform: translate(-50%, 6px);
   transition: opacity .22s ease, transform .22s ease;
   pointer-events: none;
 }

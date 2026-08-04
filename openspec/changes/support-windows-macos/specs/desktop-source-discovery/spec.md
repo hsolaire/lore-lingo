@@ -34,7 +34,7 @@ The system SHALL enumerate capturable top-level application windows on Windows a
 - **THEN** the window remains in the catalog with missing optional metadata instead of failing the entire discovery request
 
 #### Scenario: LensLingo windows are enumerated by the operating system
-- **WHEN** native discovery returns LensLingo's main, lyric, or selector windows
+- **WHEN** native discovery returns LensLingo's main, subtitle, or selector windows
 - **THEN** those windows are excluded from the user-selectable source catalog
 
 ### Requirement: Catalog-scoped source identity

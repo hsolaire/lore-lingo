@@ -40,7 +40,7 @@ hotfix/* ──┬── PR ──> main
 | 前缀 | 用途 | 示例 |
 | --- | --- | --- |
 | `feature/` | 新增用户可见能力 | `feature/capture-history` |
-| `fix/` | 修复非紧急缺陷 | `fix/overlay-position` |
+| `fix/` | 修复非紧急缺陷 | `fix/subtitle-position` |
 | `hotfix/` | 修复已发布版本的紧急生产问题 | `hotfix/capture-crash` |
 | `refactor/` | 不改变外部行为的结构调整 | `refactor/desktop-adapters` |
 | `perf/` | 可验证的性能改进 | `perf/frame-conversion` |
@@ -61,7 +61,7 @@ Codex 创建的分支必须增加 `codex/` 前缀，格式为 `codex/<type>/<top
 - 使用小写 ASCII 字母、数字和连字符；不得使用空格、下划线或中文。
 - `<type>` 必须来自短期分支表中的前缀。
 - `<topic>` 应描述业务目标或修改对象，使用简短的 kebab-case，避免 `misc`、`update`、`changes` 等模糊名称。
-- 关联工单时，可将编号放在主题开头，例如 `fix/123-overlay-position`。
+- 关联工单时，可将编号放在主题开头，例如 `fix/123-subtitle-position`。
 - 不得在同一分支混入不相关的重构、格式化或依赖升级。
 
 ## 分支生命周期
@@ -167,7 +167,7 @@ git switch -c hotfix/capture-crash
 ```text
 Closes: #123
 Refs: #456
-BREAKING CHANGE: overlay events now use the translation-overlay prefix.
+BREAKING CHANGE: subtitle events now use the subtitle prefix.
 ```
 
 存在破坏性变更时，必须在类型或作用域后增加 `!`，并使用 `BREAKING CHANGE:` 脚注说明迁移方式。仅添加 `!` 而没有迁移说明不合格。
@@ -195,7 +195,7 @@ BREAKING CHANGE: overlay events now use the translation-overlay prefix.
 作用域是受影响的稳定模块、平台或能力边界，应该使用仓库中可识别的短名称。推荐作用域包括但不限于：
 
 ```text
-ui, capture, overlay, settings, composable, ipc, desktop, db,
+ui, capture, subtitle, settings, composable, ipc, desktop, db,
 migration, windows, macos, deps, release, openspec, skill
 ```
 
@@ -221,10 +221,10 @@ fix(windows): release GDI handles after capture
 带正文和关联工单：
 
 ```text
-fix(overlay): restore the saved position after display changes
+fix(subtitle): restore the saved position after display changes
 
 Recalculate the visible bounds before applying the persisted position so the
-overlay remains reachable when a monitor is disconnected.
+The Subtitle Overlay remains reachable when a monitor is disconnected.
 
 Closes: #128
 ```
@@ -232,11 +232,11 @@ Closes: #128
 破坏性变更：
 
 ```text
-refactor(overlay)!: rename legacy lyric events
+refactor(subtitle)!: standardize subtitle events
 
-Use the product-standard translation-overlay prefix across the IPC boundary.
+Use the product-standard subtitle prefix across the IPC boundary.
 
-BREAKING CHANGE: consumers must subscribe to translation-overlay events.
+BREAKING CHANGE: consumers must subscribe to subtitle events.
 ```
 
 不合格示例：

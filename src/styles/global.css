@@ -58,9 +58,6 @@ body {
 
 #app { display: contents; }
 
-/* 歌词形态：顶对齐，高度自适应内容，不撑满视口 */
-body.lyric-mode { align-items: start; height: auto; min-height: unset; }
-
 /* 框选提示层：仅框选进行中显示 */
 body.selecting .capture-frame { display: block; animation: framePulse 1.6s ease-in-out infinite; }
 
