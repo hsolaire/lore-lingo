@@ -1,53 +1,53 @@
-# Frontend Standards
+# 前端规范
 
-## Stack and Boundaries
+## 技术栈与边界
 
-- Use Vue 3 Composition API, TypeScript strict mode, Vite, and Tauri 2 APIs.
-- Use Naive UI as the shared interactive component library. Read `frontend-naive-ui.md` before adding or replacing UI components.
-- Use Lucide Vue for Vue-rendered interface icons. Do not add a second general-purpose icon library.
-- Prefer `<script setup lang="ts">` for Vue components.
-- Keep platform and database implementation details behind typed frontend services.
-- Use runtime capability data for Windows/macOS differences; do not parse the user agent.
-- Keep macOS and Windows presentation behind one component contract and separate platform themes; do not fork feature behavior by platform.
+- 使用 Vue 3 组合式 API、TypeScript 严格模式、Vite 和 Tauri 2 API。
+- 使用 Naive UI 作为共享交互组件库。新增或替换界面组件前，阅读 `frontend-naive-ui.md`。
+- Vue 渲染的界面图标使用 Lucide Vue。不得添加第二套通用图标库。
+- Vue 组件优先使用 `<script setup lang="ts">`。
+- 将平台和数据库实现细节封装在类型化前端服务之后。
+- 使用运行时能力数据处理 Windows/macOS 差异；不得解析用户代理字符串。
+- macOS 和 Windows 界面共用一套组件合约，并使用各自的平台主题；不得按平台分叉功能行为。
 
-## Components
+## 组件
 
-- Give each component one clear UI responsibility.
-- Define typed props and emits. Avoid `any`; use `unknown` plus validation at external boundaries.
-- Keep components declarative. Move reusable state/lifecycle orchestration into composables.
-- Clean up event listeners, timers, subscriptions, and Tauri unlisten functions in `onUnmounted`.
-- Provide keyboard operation, accessible names, visible focus, and appropriate semantic elements.
-- Render explicit loading, empty, denied, unavailable, error, and success states where relevant.
+- 每个组件只承担一项明确的界面职责。
+- 定义有类型的属性和事件。避免使用 `any`；外部边界使用 `unknown` 并进行校验。
+- 组件保持声明式。将可复用状态和生命周期编排移入组合式函数。
+- 在 `onUnmounted` 中清理事件监听器、计时器、订阅和 Tauri 取消监听函数。
+- 提供键盘操作、无障碍名称、可见焦点和恰当的语义元素。
+- 在相关场景明确渲染加载、空、拒绝、不可用、错误和成功状态。
 
-## State and IPC
+## 状态与 IPC
 
-- Keep state local unless multiple components or windows genuinely share it.
-- Treat Tauri events as cross-window notifications, not a durable source of truth.
-- Centralize direct `invoke`, window, and event APIs in typed service modules as contracts mature.
-- Serialize stable DTOs only; never expose `HWND`, Core Graphics objects, raw paths, or Rust error strings.
-- Prevent feedback loops when mirroring state across windows and test the chosen guard.
+- 除非多个组件或窗口确实共享状态，否则状态应保持局部。
+- 将 Tauri 事件视为跨窗口通知，不视为持久化事实来源。
+- 随着合约成熟，将直接使用的 `invoke`、窗口和事件 API 集中到类型化服务模块中。
+- 只序列化稳定的数据传输对象；绝不暴露 `HWND`、Core Graphics 对象、原始路径或 Rust 错误字符串。
+- 跨窗口同步状态时防止反馈循环，并测试所选防护机制。
 
-## Async Behavior
+## 异步行为
 
-- Make cancellation and stale-response handling explicit for capture, OCR, translation, and search.
-- Do not leave rejected promises silently swallowed unless failure is intentionally best-effort and documented.
-- Prevent duplicate submissions and unbounded event/frame queues.
-- Use deterministic status enums rather than unrelated booleans for multi-state workflows.
+- 对捕获、OCR、翻译和搜索明确实现取消和过期响应处理。
+- 除非失败被有意设计为尽力而为且已有文档说明，否则不得静默吞掉被拒绝的 Promise。
+- 防止重复提交和无界事件或帧队列。
+- 多状态工作流使用确定的状态枚举，不使用互不相关的布尔值。
 
-## Styling
+## 样式
 
-- Keep design tokens and cross-window defaults in `src/styles/`; keep feature styles scoped to components.
-- Treat Naive UI defaults as implementation scaffolding, not the LensLingo visual design.
-- Read `frontend-macos-27.md` for macOS work and `frontend-windows-11.md` for Windows work.
-- Provide an opaque/translucent fallback when platform transparency or backdrop blur differs.
-- Use stable responsive dimensions for fixed-format controls and overlays.
-- Avoid hard-coded desktop sizes and macOS-only symbols in cross-platform UI.
-- Ensure text, controls, and focus states remain usable at Windows DPI scaling and macOS Retina scaling.
+- 将设计令牌和跨窗口默认样式放在 `src/styles/`；功能样式限定在组件作用域内。
+- 将 Naive UI 默认样式视为实现脚手架，不视为 LensLingo 最终视觉设计。
+- macOS 工作阅读 `frontend-macos-27.md`，Windows 工作阅读 `frontend-windows-11.md`。
+- 平台透明度或背景模糊表现不一致时，提供不透明或半透明降级方案。
+- 固定格式控件和悬浮窗使用稳定的响应式尺寸。
+- 跨平台界面不得硬编码桌面尺寸或使用 macOS 专有符号。
+- 确保文字、控件和焦点状态在 Windows DPI 缩放和 macOS Retina 缩放下仍然可用。
 
-## Validation
+## 验证
 
-- `pnpm build` is the current mandatory frontend baseline.
-- Apply `frontend-visual-validation.md` to every material visual change.
-- Add focused unit tests when introducing parsing, state machines, coordinate transforms, or error mapping.
-- Add component/integration tests for permission, source-selection, multi-window, and recovery behavior.
-- Verify browser preview only as a UI aid; native Tauri behavior requires native smoke testing.
+- `pnpm build` 是当前必须通过的前端基线检查。
+- 每项实质性视觉变更都必须应用 `frontend-visual-validation.md`。
+- 引入解析、状态机、坐标转换或错误映射时，添加针对性单元测试。
+- 为权限、来源选择、多窗口和恢复行为添加组件或集成测试。
+- 浏览器预览只可辅助验证界面；原生 Tauri 行为必须通过原生烟雾测试验证。
