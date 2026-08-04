@@ -1,37 +1,36 @@
-# Release Standards
+# 发布规范
 
-## Supported Targets
+## 支持目标
 
-- Windows 10 22H2 and Windows 11, x86_64 MSVC, with a documented WebView2 strategy.
-- macOS 13 or newer, Universal 2, signed and notarized for direct distribution.
-- Build each operating-system artifact on a native CI runner; do not claim host-local cross-platform bundles.
+- 支持 Windows 10 22H2 和 Windows 11、x86_64 MSVC，并提供明确的 WebView2 策略。
+- 支持 macOS 13 或更高版本和 Universal 2；直接分发的产物必须签名并完成公证。
+- 每个操作系统的产物都必须在原生持续集成运行器上构建；不得声称可在单一宿主机本地生成跨平台安装包。
 
-## Pipeline Stages
+## 流水线阶段
 
-1. Validate lockfiles, versions, formatting, types, tests, and OpenSpec artifacts.
-2. Build unsigned native artifacts in pull-request CI.
-3. Run platform smoke tests for permissions, capture, scaling, multiple displays, and overlays.
-4. Build release artifacts from an authorized SemVer tag.
-5. Sign Windows artifacts and sign/notarize macOS artifacts using protected CI secrets.
-6. Verify installer launch and publish checksums and release notes.
+1. 验证锁文件、版本、格式、类型、测试和 OpenSpec 产物。
+2. 在拉取请求持续集成中构建未签名的原生产物。
+3. 针对权限、捕获、缩放、多显示器和悬浮窗运行平台烟雾测试。
+4. 从已授权的语义化版本标签构建发布产物。
+5. 使用受保护的持续集成密钥签署 Windows 产物，并签署和公证 macOS 产物。
+6. 验证安装器启动，并发布校验和及发布说明。
 
-## Versioning
+## 版本管理
 
-- Keep `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` versions synchronized.
-- Use SemVer based on user-visible behavior and compatibility impact.
-- Record schema migrations, minimum operating-system changes, and breaking configuration changes in release notes.
+- 保持 `package.json`、`src-tauri/Cargo.toml` 和 `src-tauri/tauri.conf.json` 中的版本同步。
+- 根据用户可见行为和兼容性影响使用语义化版本。
+- 在发布说明中记录模式迁移、最低操作系统要求变化和破坏性配置变更。
 
-## Packaging
+## 打包
 
-- Never commit `dist/`, `target/`, installers, signing material, or notarization credentials.
-- Verify application identifier, icons, usage descriptions, entitlements, capabilities, and installer metadata before release.
-- Keep signing optional for untrusted pull requests and mandatory for publication jobs.
+- 绝不提交 `dist/`、`target/`、安装器、签名材料或公证凭据。
+- 发布前验证应用标识符、图标、用途说明、授权声明、能力和安装器元数据。
+- 不受信任的拉取请求不执行签名，发布任务必须执行签名。
 
-## Release Gate
+## 发布门槛
 
-- Required CI is green on Windows and macOS.
-- Database fresh-install and upgrade migrations pass.
-- Compatibility smoke matrix is complete for the release candidate.
-- No known critical/high security finding remains unresolved.
-- Rollback or recovery instructions exist for migrations and distribution failures.
-
+- Windows 和 macOS 上所有必需的持续集成检查均已通过。
+- 数据库全新安装和升级迁移均已通过。
+- 候选发布版本已完成兼容性烟雾测试矩阵。
+- 不存在尚未解决的已知严重或高危安全问题。
+- 已为迁移和分发失败准备回滚或恢复说明。
