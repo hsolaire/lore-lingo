@@ -138,7 +138,7 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
     let mut pid: u32 = 0;
     GetWindowThreadProcessId(hwnd, Some(&mut pid));
 
-    // 跳过 LensLingo 自身的窗口（main + overlay）
+    // 跳过 LensLingo 自身的窗口（main + subtitle）
     if pid == GetCurrentProcessId() {
         return TRUE;
     }

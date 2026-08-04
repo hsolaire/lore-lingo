@@ -15,34 +15,34 @@ The main window SHALL present and operate controls according to the runtime desk
 - **WHEN** the user drags a non-interactive title-bar area
 - **THEN** the native window moves without making title-bar buttons initiate a drag
 
-### Requirement: Content-sized lyric overlay
-The lyric overlay SHALL use a native window bounded to its visible content rather than an invisible desktop-sized input surface.
+### Requirement: Content-sized subtitle overlay
+The subtitle overlay SHALL use a native window bounded to its visible content rather than an invisible desktop-sized input surface.
 
-#### Scenario: Lyric overlay is shown
-- **WHEN** the user enters lyric mode
-- **THEN** a transparent always-on-top window is positioned around the lyric content and unrelated desktop areas remain interactive
+#### Scenario: Subtitle overlay is shown
+- **WHEN** the user opens the Subtitle Overlay
+- **THEN** a transparent always-on-top window is positioned around the subtitle content and unrelated desktop areas remain interactive
 
-#### Scenario: Lyric content changes height
-- **WHEN** wrapping or controls change the measured lyric content size
-- **THEN** the native overlay is resized and clamped without moving off the active monitor
+#### Scenario: Subtitle content changes height
+- **WHEN** wrapping or controls change the measured subtitle content size
+- **THEN** the native Subtitle Overlay is resized and clamped without moving off the active monitor
 
-#### Scenario: User closes lyric mode
-- **WHEN** lyric mode is closed
-- **THEN** the overlay is hidden or destroyed and does not retain an invisible input-blocking window
+#### Scenario: User closes the Subtitle Overlay
+- **WHEN** the Subtitle Overlay is closed
+- **THEN** the Subtitle Overlay is hidden or destroyed and does not retain an invisible input-blocking window
 
-### Requirement: Monitor-aware overlay persistence
-The system SHALL persist overlay placement relative to a monitor and SHALL recover safely when the stored topology no longer exists.
+### Requirement: Monitor-aware Subtitle Overlay persistence
+The system SHALL persist Subtitle Overlay placement relative to a monitor and SHALL recover safely when the stored topology no longer exists.
 
 #### Scenario: Stored monitor remains connected
-- **WHEN** the overlay is restored and its stored monitor is available
+- **WHEN** the Subtitle Overlay is restored and its stored monitor is available
 - **THEN** its position and width are restored and clamped to that monitor's logical work area
 
 #### Scenario: Stored monitor was removed
-- **WHEN** the overlay is restored after its stored monitor has been disconnected
+- **WHEN** the Subtitle Overlay is restored after its stored monitor has been disconnected
 - **THEN** it moves to a visible clamped position on the primary monitor
 
 #### Scenario: Scale factor changes
-- **WHEN** the overlay moves between monitors with different scale factors
+- **WHEN** the Subtitle Overlay moves between monitors with different scale factors
 - **THEN** its logical size remains usable and its native physical bounds are recalculated
 
 ### Requirement: Temporary per-monitor region selectors
@@ -62,4 +62,3 @@ The application SHALL remain readable and operable when transparent-window or ba
 #### Scenario: Backdrop effect is unavailable
 - **WHEN** the runtime cannot render the intended transparent blur effect correctly
 - **THEN** the window uses an opaque or translucent fallback with sufficient contrast and unchanged controls
-

@@ -26,8 +26,7 @@ src/
   components/
     ui/                         可复用视觉基础组件
     main-panel/                 主窗口功能组件
-    translation-overlay/       翻译悬浮窗组件的目标目录
-    lyric/                      遗留路径；应完整迁移，不得新增文件
+    subtitle/                   悬浮字幕组件
     settings/                   设置功能组件
   composables/                  可复用响应式编排
   services/                     类型化 Tauri/API 客户端；按需添加
@@ -35,9 +34,9 @@ src/
   icons/                        图标注册表
   styles/                       全局设计令牌与跨窗口样式
   App.vue                       主窗口组合根组件
-  OverlayApp.vue                翻译悬浮窗组合根组件
+  SubtitleApp.vue               悬浮字幕组合根组件
   main.ts                       主入口
-  overlay.ts                    翻译悬浮窗入口
+  subtitle.ts                   悬浮字幕入口
 ```
 
 规则：
@@ -80,7 +79,7 @@ src-tauri/
 - TypeScript 模块和组合式函数：沿用现有驼峰命名约定，组合式函数以 `use` 开头。
 - Rust 模块和文件：`snake_case`。
 - OpenSpec 能力和 Skill 目录：`kebab-case`。
-- 新增翻译悬浮窗标识：TypeScript 中使用 `translationOverlay`，路径和事件中使用 `translation-overlay`；不得新增 `lyric` 标识。
+- 悬浮字幕标识：PascalCase 使用 `Subtitle`，驼峰标识、路径、事件和 Tauri 窗口标签使用 `subtitle`。
 - SQLite 迁移：补零序号加下划线式描述，例如 `0002_add_capture_profiles.sql`。
 - 测试：映射源代码归属边界，并使用测试框架的标准后缀。
 

@@ -50,7 +50,7 @@ Every release candidate MUST be checked against a documented Windows/macOS workf
 
 #### Scenario: Capture workflows are tested
 - **WHEN** a release candidate is validated
-- **THEN** the matrix covers permission grant/deny/revoke, region capture, window capture, stale sources, overlay exclusion, session replacement, and protected-content failure behavior
+- **THEN** the matrix covers permission grant/deny/revoke, region capture, window capture, stale sources, Subtitle Overlay exclusion, session replacement, and protected-content failure behavior
 
 #### Scenario: Package lifecycle is tested
 - **WHEN** a release candidate is validated
@@ -66,4 +66,3 @@ Build and release documentation MUST distinguish host-local bundle targets from 
 #### Scenario: Developer reads build instructions on Windows
 - **WHEN** the developer follows the Windows build instructions
 - **THEN** the documentation describes only Windows artifacts and does not claim to produce macOS bundles
-

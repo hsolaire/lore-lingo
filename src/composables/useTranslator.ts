@@ -3,7 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { emit } from '@tauri-apps/api/event'
 import { useToast } from './useToast'
 
-// 单例翻译状态：面板与歌词条共享同一份原文/译文/语言方向/置顶。
+// 单例翻译状态：主面板与悬浮字幕共享原文、译文和语言方向。
 const srcText = ref("I never thought I'd find you here, of all places.")
 const tgtText = ref('没想到会在这种地方遇见你。')
 const langA = ref('English')
@@ -28,7 +28,7 @@ async function broadcastState() {
 }
 
 // Watch all shared state and broadcast on change.
-// Guard with isBroadcasting to prevent the overlay's listen handler
+// Guard with isBroadcasting to prevent the subtitle listener
 // from re-emitting when it updates local refs.
 watch([srcText, tgtText, langA, langB, pinned], () => {
   broadcastState()
@@ -60,19 +60,18 @@ export function applyRemoteState(payload: TranslatorPayload) {
 export function useTranslator() {
   const { toast } = useToast()
 
-  /** 翻转语言方向（面板与歌词条共用） */
+  /** 翻转语言方向（主面板与悬浮字幕共用）。 */
   function flip() {
     ;[langA.value, langB.value] = [langB.value, langA.value]
     toast('已切换翻译方向')
   }
 
-  /** 交换原文/译文文本（歌词条翻转时同步内容） */
+  /** 交换原文/译文文本（悬浮字幕翻转时同步内容）。 */
   function swapText() {
     ;[srcText.value, tgtText.value] = [tgtText.value, srcText.value]
   }
 
-  /** 切换置顶：同步到 Tauri 原生窗口层级（仅主窗口调用）。
-   *  覆层窗口应通过 emit('pin:toggle') 让主窗口执行此函数。 */
+  /** 切换主窗口置顶；悬浮字幕使用独立的窗口状态。 */
   async function togglePin() {
     const nextState = !pinned.value
     try {

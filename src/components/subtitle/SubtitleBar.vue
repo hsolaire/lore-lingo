@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue'
-import { useLyricDrag } from '@/composables/useLyricDrag'
+import { useSubtitleWindow } from '@/composables/useSubtitleWindow'
 import { useTranslator } from '@/composables/useTranslator'
-import LyricControls from './LyricControls.vue'
-import LyricBox from './LyricBox.vue'
+import SubtitleControls from './SubtitleControls.vue'
+import SubtitleContent from './SubtitleContent.vue'
 
 const props = defineProps<{ externalPeek?: number }>()
 
@@ -22,7 +22,12 @@ function onLeave() {
   peekActive.value = false
 }
 
-const { placed, dragging, pos, size, onDragBarMousedown, onResizeMousedown } = useLyricDrag(barEl, () => peek())
+const {
+  pinned,
+  onDragBarMousedown,
+  onResizeMousedown,
+  togglePinned,
+} = useSubtitleWindow(barEl)
 
 watch(() => props.externalPeek, () => peek())
 
@@ -45,17 +50,13 @@ onUnmounted(() => {
 <template>
   <div
     ref="barEl"
-    class="lyric-bar"
-    :class="{ placed, dragging, peek: peekActive }"
-    :style="{
-      ...(placed ? { left: pos.x + 'px', top: pos.y + 'px' } : {}),
-      ...(size.width ? { width: size.width + 'px' } : {}),
-    }"
+    class="subtitle-bar"
+    :class="{ peek: peekActive }"
     @mouseenter="onEnter"
     @mouseleave="onLeave"
   >
-    <LyricControls @flip="onFlip" />
-    <LyricBox
+    <SubtitleControls :pinned="pinned" @flip="onFlip" @toggle-pinned="togglePinned" />
+    <SubtitleContent
       :swap="swapping"
       @dragbar-mousedown="onDragBarMousedown"
       @resize-mousedown="onResizeMousedown"
@@ -64,22 +65,13 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.lyric-bar {
-  position: fixed;
-  left: 50%; top: 40px;
-  transform: translateX(-50%);
-  width: min(760px, calc(100vw - 48px));
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+.subtitle-bar {
+  position: relative;
+  width: 100%;
 }
-.lyric-bar.placed { transform: none; }
-.lyric-bar.dragging { user-select: none; }
-.lyric-bar.dragging :deep(.lyric-ctrl) { opacity: 0 !important; }
 
-.lyric-bar:hover :deep(.lyric-ctrl),
-.lyric-bar.peek :deep(.lyric-ctrl) {
-  opacity: 1; transform: translateY(0); pointer-events: auto;
+.subtitle-bar:hover :deep(.subtitle-controls),
+.subtitle-bar.peek :deep(.subtitle-controls) {
+  opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
 }
 </style>
