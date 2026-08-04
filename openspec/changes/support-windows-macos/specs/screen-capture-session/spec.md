@@ -66,8 +66,8 @@ The capture coordinator MUST bound retained frame data and MUST prefer the lates
 ### Requirement: LensLingo content exclusion
 The capture backend SHALL exclude LensLingo's own persistent windows from captured frames when the operating system supports exclusion.
 
-#### Scenario: Lyric overlay overlaps the source
-- **WHEN** the lyric overlay is visible over a captured screen or window
+#### Scenario: Subtitle overlay overlaps the source
+- **WHEN** the subtitle overlay is visible over a captured screen or window
 - **THEN** the backend excludes it from the captured content when supported and reports self-exclusion capability accurately
 
 #### Scenario: Backend cannot guarantee exclusion

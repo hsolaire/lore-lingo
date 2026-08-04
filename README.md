@@ -21,13 +21,11 @@
   - 一键切换翻译方向
   - 实时更新翻译结果
 
-### 🪟 悬浮字幕窗口
+### 🪟 悬浮字幕
 
-- **屏幕置顶显示**：支持将翻译悬浮窗置于屏幕最前层
+- **屏幕置顶显示**：支持将悬浮字幕置于屏幕最前层
 - **自由拖拽定位**：鼠标拖动调整窗口位置，位置自动保存
-- **视图切换**
-  - 面板视图：紧凑的控制面板，支持设置和字幕管理
-  - 字幕条视图：全屏沉浸式字幕显示（类似视频播放器）
+- **独立窗口**：不依附主窗口，可单独显示、移动和关闭
 - **自动隐藏控制栏**：鼠标离开后短暂显示，随后自动隐藏
 
 ### ⌨️ 快捷键支持
@@ -92,10 +90,10 @@ lore-lingo/
 │   │   │   ├── LangFlip.vue     # 语言方向切换按钮
 │   │   │   ├── TranslationCard.vue # 单条翻译卡片
 │   │   │   └── Toolbar.vue      # 操作工具栏
-│   │   ├── lyric/               # 字幕悬浮窗相关
-│   │   │   ├── LyricBar.vue     # 悬浮窗容器（可拖拽）
-│   │   │   ├── LyricBox.vue     # 字幕显示区域
-│   │   │   └── LyricControls.vue # 悬浮窗控制栏
+│   │   ├── subtitle/            # 悬浮字幕相关
+│   │   │   ├── SubtitleBar.vue  # 悬浮字幕容器
+│   │   │   ├── SubtitleContent.vue # 字幕显示区域
+│   │   │   └── SubtitleControls.vue # 悬浮字幕控制栏
 │   │   ├── settings/            # 设置面板
 │   │   │   ├── SettingsDrawer.vue # 设置抽屉容器
 │   │   │   ├── OcrPanel.vue     # OCR 设置
@@ -108,15 +106,18 @@ lore-lingo/
 │   │   ├── CaptureFrame.vue     # 捕获区域框架显示
 │   │   └── AppToast.vue         # 消息提示
 │   ├── composables/
-│   │   ├── useLyricMode.ts      # 悬浮窗模式管理
+│   │   ├── useSubtitle.ts       # 悬浮字幕显示与关闭
+│   │   ├── useSubtitleBridge.ts # 双窗口状态同步
+│   │   ├── useSubtitleWindow.ts # 悬浮字幕原生窗口交互
 │   │   ├── useCaptureSource.ts  # 捕获源管理（应用/区域切换）
 │   │   ├── useTranslator.ts     # 翻译状态共享
 │   │   ├── useSubtitles.ts      # 字幕库管理
-│   │   ├── useLyricDrag.ts      # 悬浮窗拖拽逻辑
 │   │   ├── useSettings.ts       # 设置面板状态
 │   │   └── useToast.ts          # 消息队列
 │   ├── icons/
-│   └── App.vue                  # 应用根组件
+│   ├── App.vue                  # 主窗口根组件
+│   ├── SubtitleApp.vue          # 悬浮字幕窗口根组件
+│   └── subtitle.ts              # 悬浮字幕窗口入口
 ├── src-tauri/                   # Tauri 后端
 │   ├── src/
 │   │   ├── lib.rs               # 核心逻辑（屏幕截图、字幕解析等）
@@ -124,6 +125,7 @@ lore-lingo/
 │   ├── Cargo.toml
 │   └── tauri.conf.json          # Tauri 配置（窗口、权限等）
 ├── index.html
+├── subtitle.html
 ├── package.json
 └── README.md                    # 本文件
 ```

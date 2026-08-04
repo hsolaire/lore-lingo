@@ -1,6 +1,6 @@
 ## Context
 
-LensLingo is a Vue 3 application hosted by Tauri 2. The current Rust entry point mixes Tauri command registration, screenshot capture, Windows window enumeration, and Windows icon extraction in one file. The frontend knows Windows-specific fields such as `exe`, the non-Windows window command returns an empty list, and region selection is simulated. The overlay is a fixed 1920 x 1080 transparent window, which does not model mixed-DPI or changing monitor layouts and can intercept input outside the visible lyric bar.
+LensLingo is a Vue 3 application hosted by Tauri 2. The current Rust entry point mixes Tauri command registration, screenshot capture, Windows window enumeration, and Windows icon extraction in one file. The frontend knows Windows-specific fields such as `exe`, the non-Windows window command returns an empty list, and region selection is simulated. The Subtitle Overlay is a fixed 1920 x 1080 transparent window, which does not model mixed-DPI or changing monitor layouts and can intercept input outside the visible subtitle bar.
 
 The supported release baseline for this change is:
 
@@ -152,13 +152,13 @@ Native handles, paths, API keys, and raw framework errors are logged only in dev
 
 ### 7. Presentation uses small persistent windows and temporary selectors
 
-The lyric overlay becomes a content-sized transparent Tauri window rather than a desktop-sized transparent window. Vue measures content and asks Tauri to resize the native window; dragging uses native window movement. Position is stored as monitor identity plus a normalized horizontal anchor and clamped logical coordinates. If that monitor disappears, the window is moved to and clamped within the primary monitor.
+The subtitle overlay becomes a content-sized transparent Tauri window rather than a desktop-sized transparent window. Vue measures content and asks Tauri to resize the native window; dragging uses native window movement. Position is stored as monitor identity plus a normalized horizontal anchor and clamped logical coordinates. If that monitor disappears, the window is moved to and clamped within the primary monitor.
 
 Region selection uses temporary borderless windows sized to each monitor and destroys them when selection finishes or is cancelled. These windows are never left active during capture.
 
 The main window keeps custom decorations, but controls are platform-correct: macOS traffic controls on the left and Windows minimize/close controls on the right. Behavior uses Tauri APIs, while Vue obtains platform data from `DesktopCapabilities` rather than user-agent parsing.
 
-Alternative considered: keep the fixed transparent overlay. Rejected because it blocks input over invisible areas and assumes one 1920 x 1080 monitor.
+Alternative considered: keep the fixed transparent Subtitle Overlay. Rejected because it blocks input over invisible areas and assumes one 1920 x 1080 monitor.
 
 ### 8. Release builds are native, reproducible, and separate from signing
 
@@ -182,7 +182,7 @@ macOS builds produce a Universal 2 artifact containing x86_64 and arm64 slices f
 2. Move current Windows enumeration and screenshot code into the Windows adapter and expose the new discovery commands alongside legacy commands.
 3. Add the macOS adapter, permission flow, and source discovery; validate both catalogs before changing Vue.
 4. Implement monitor-local region selection and capture sessions, then migrate the frontend composables to the new contract.
-5. Replace the fixed overlay with a content-sized window and add self-exclusion.
+5. Replace the fixed Subtitle Overlay with a content-sized window and add self-exclusion.
 6. Remove legacy `list_windows`, `list_screens`, and `capture_region` commands after the frontend no longer calls them.
 7. Add native CI build jobs, packaging configuration, and the compatibility smoke-test checklist.
 

@@ -28,20 +28,25 @@
         "center": true
       },
       {
-        "label": "overlay",
-        "title": "LensLingo Overlay",
-        "url": "overlay.html",
-        "width": 1920,
-        "height": 1080,
+        "label": "subtitle",
+        "title": "LensLingo 悬浮字幕",
+        "url": "subtitle.html",
+        "width": 808,
+        "height": 164,
+        "minWidth": 328,
+        "maxWidth": 1248,
         "fullscreen": false,
-        "resizable": false,
+        "resizable": true,
+        "maximizable": false,
+        "minimizable": false,
         "decorations": false,
         "transparent": true,
         "shadow": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "focus": false
+        "focus": false,
+        "center": true
       }
     ],
     "security": {

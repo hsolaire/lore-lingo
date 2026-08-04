@@ -17,7 +17,7 @@ export const icons: Record<string, IconDef> = {
     strokeWidth: 2.2,
     stroke: '#fff',
   },
-  // 标题栏 · 切换歌词条（音符）
+  // 标题栏 · 打开悬浮字幕（音符）
   music: {
     body: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   },

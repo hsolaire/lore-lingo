@@ -66,7 +66,7 @@ erDiagram
     }
 
     SYS_WINDOW_STATES {
-        TEXT window_label PK "main | overlay 等"
+        TEXT window_label PK "main | subtitle 等"
         INTEGER x "X 坐标或 NULL"
         INTEGER y "Y 坐标或 NULL"
         INTEGER width "逻辑像素或 NULL"

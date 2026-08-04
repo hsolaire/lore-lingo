@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { useLyricMode } from '@/composables/useLyricMode'
+import { useSubtitle } from '@/composables/useSubtitle'
 import { useSettings } from '@/composables/useSettings'
 import { useTranslator } from '@/composables/useTranslator'
 import Icon from '@/components/ui/Icon.vue'
 
-const { enter } = useLyricMode()
+const { show: showSubtitle } = useSubtitle()
 const { drawerOpen, toggleDrawer } = useSettings()
 const { pinned, togglePin } = useTranslator()
 
@@ -52,7 +52,7 @@ function startDragging(event: MouseEvent) {
       <span class="live">实时</span>
     </div>
     <span class="spacer"></span>
-    <button class="icon-btn" data-window-control title="打开翻译悬浮窗" aria-label="打开翻译悬浮窗" @click="enter">
+    <button class="icon-btn" data-window-control title="打开悬浮字幕" aria-label="打开悬浮字幕" @click="showSubtitle">
       <Icon name="music" />
     </button>
     <button

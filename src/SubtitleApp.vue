@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppToast from '@/components/AppToast.vue'
-import LyricBar from '@/components/lyric/LyricBar.vue'
-import { useOverlayBridge } from '@/composables/useOverlayBridge'
+import SubtitleBar from '@/components/subtitle/SubtitleBar.vue'
+import { useSubtitleBridge } from '@/composables/useSubtitleBridge'
 
 const peekTrigger = ref(0)
 function triggerPeek() { peekTrigger.value++ }
 
-useOverlayBridge(triggerPeek)
+useSubtitleBridge(triggerPeek)
 </script>
 
 <template>
-  <LyricBar :external-peek="peekTrigger" />
+  <SubtitleBar :external-peek="peekTrigger" />
   <AppToast />
 </template>
