@@ -1,15 +1,15 @@
-# Testing and Quality Standards
+# 测试与质量规范
 
-## Risk-Based Coverage
+## 基于风险的覆盖范围
 
-- Add focused tests for every bug fix and stable contract change.
-- Broaden coverage for shared services, IPC DTOs, migrations, platform adapters, multi-window state, and release configuration.
-- Test failure and recovery paths, not only successful output.
-- Keep tests deterministic; control time, external services, display metadata, and filesystem state through explicit seams.
+- 每项缺陷修复和稳定合约变更都必须添加针对性测试。
+- 共享服务、IPC 数据传输对象、迁移、平台适配器、多窗口状态和发布配置需要扩大测试覆盖范围。
+- 除成功输出外，还必须测试失败和恢复路径。
+- 保持测试确定性；通过明确的替换边界控制时间、外部服务、显示器元数据和文件系统状态。
 
-## Required Checks
+## 必需检查
 
-Current minimum for source changes:
+当前源代码变更的最低要求：
 
 ```text
 pnpm build
@@ -17,7 +17,7 @@ cargo fmt --check --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
-As test/lint scripts are added, the standard gate becomes:
+添加测试和代码检查脚本后，标准质量门槛变为：
 
 ```text
 pnpm lint
@@ -26,23 +26,22 @@ cargo test --manifest-path src-tauri/Cargo.toml
 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 ```
 
-Do not claim a command was run when the repository does not yet define it. Record missing test infrastructure as a concrete gap.
+仓库尚未定义某条命令时，不得声称已经运行。应将缺失的测试基础设施记录为具体缺口。
 
-## Test Layers
+## 测试层级
 
-- Unit: pure transforms, parsing, domain rules, error mapping, state machines.
-- Component: UI states, keyboard behavior, event cleanup, stale-response handling.
-- Integration: Tauri command/service/repository boundaries and SQLite migrations.
-- Native smoke: permissions, windows, displays, DPI, overlay behavior, packaging.
-- Release smoke: install, first launch, upgrade, restart after permissions, uninstall.
+- 单元测试：纯转换、解析、领域规则、错误映射和状态机。
+- 组件测试：界面状态、键盘行为、事件清理和过期响应处理。
+- 集成测试：Tauri 命令、服务、仓储边界和 SQLite 迁移。
+- 原生烟雾测试：权限、窗口、显示器、DPI、悬浮窗行为和打包。
+- 发布烟雾测试：安装、首次启动、升级、授权后重启和卸载。
 
-## Review Checklist
+## 审查清单
 
-- Behavior matches the request and active specs.
-- New types and errors are stable across IPC.
-- Resources, listeners, workers, handles, and transactions are cleaned up.
-- Platform-specific behavior has a fallback or explicit unsupported state.
-- Sensitive data is absent from code, tests, logs, and snapshots.
-- Documentation and tasks reflect material behavior changes.
-- The working tree contains no accidental build or generated output.
-
+- 行为符合需求和进行中的规格。
+- 新类型和错误在 IPC 边界上保持稳定。
+- 资源、监听器、工作线程、句柄和事务均已清理。
+- 平台特定行为具备降级方案或明确的“不支持”状态。
+- 代码、测试、日志和快照中不包含敏感数据。
+- 文档和任务已反映实质性行为变化。
+- 工作区不包含意外产生的构建或生成输出。

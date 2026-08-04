@@ -1,37 +1,36 @@
-# Security Standards
+# 安全规范
 
-## Secrets
+## 密钥
 
-- Store provider credentials in macOS Keychain or Windows Credential Manager through a Rust abstraction.
-- Persist only secret references in SQLite and non-secret endpoints/options in configuration.
-- Never place real-looking keys in defaults, prototypes, tests, screenshots, logs, commits, or error messages.
-- Redact authorization headers, query credentials, local paths, captured text, and database content from diagnostics.
+- 通过 Rust 抽象将服务提供方凭据存储在 macOS 钥匙串或 Windows 凭据管理器中。
+- SQLite 只持久化密钥引用，配置中只保存非密钥端点和选项。
+- 默认值、原型、测试、截图、日志、提交或错误消息中绝不能出现形似真实值的密钥。
+- 诊断信息必须遮盖授权请求头、查询凭据、本地路径、捕获文本和数据库内容。
 
-## Tauri and IPC
+## Tauri 与 IPC
 
-- Use least-privilege capability files per window.
-- Expose narrow allowlisted commands with typed validated inputs.
-- Do not expose arbitrary shell commands, SQL, file reads, URLs, or native handles.
-- Validate lengths, paths, URL schemes, numeric ranges, source IDs, catalog revisions, and enum values in Rust.
-- Keep the content security policy explicit for production; document any temporary relaxation.
+- 每个窗口使用最小权限能力文件。
+- 只暴露范围明确的白名单命令，输入必须有类型并经过校验。
+- 不得暴露任意命令行命令、SQL、文件读取、网址或原生句柄。
+- 在 Rust 中校验长度、路径、网址协议、数值范围、来源标识、目录修订号和枚举值。
+- 生产环境必须明确配置内容安全策略；任何临时放宽都必须记录。
 
-## External Data
+## 外部数据
 
-- Treat OCR output, subtitle files, model responses, filenames, window titles, and API errors as untrusted input.
-- Do not render untrusted HTML; escape output and avoid dynamic code evaluation.
-- Bound file sizes, frame sizes, queue lengths, response sizes, retries, and timeouts.
-- Apply SSRF controls when custom API endpoints are supported; restrict unsafe schemes and local targets according to the product policy.
+- 将 OCR 输出、字幕文件、模型响应、文件名、窗口标题和 API 错误视为不可信输入。
+- 不得渲染不可信 HTML；转义输出并避免动态代码求值。
+- 限制文件大小、帧大小、队列长度、响应大小、重试次数和超时时间。
+- 支持自定义 API 端点时实施服务端请求伪造防护；根据产品策略限制不安全协议和本地目标。
 
-## Dependencies
+## 依赖
 
-- Prefer maintained dependencies with a narrow feature set and target-gate native packages.
-- Review lockfile changes and transitive dependency growth.
-- Run available Rust and JavaScript advisory checks in release CI.
-- Document native framework minimum versions and fallback behavior.
+- 优先选择仍在维护且功能范围较小的依赖，并按目标平台约束原生软件包。
+- 审查锁文件变更和传递依赖增长。
+- 在发布持续集成中运行可用的 Rust 和 JavaScript 安全公告检查。
+- 记录原生框架最低版本和降级行为。
 
-## Privacy
+## 隐私
 
-- Capture only after explicit user action and visible state.
-- Request macOS recording permission only when required and explain recovery from denial.
-- Stop capture workers promptly and avoid retaining raw frames longer than the active pipeline requires.
-
+- 只能在用户明确操作且状态可见后开始捕获。
+- 仅在需要时请求 macOS 录屏权限，并说明被拒绝后的恢复方法。
+- 及时停止捕获工作线程，原始帧的保留时间不得超过当前流水线所需时间。

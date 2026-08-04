@@ -1,89 +1,89 @@
-# Directory Structure
+# 目录结构
 
-## Purpose
+## 目的
 
-Keep ownership boundaries visible from paths. New files MUST follow this target structure; existing files MAY migrate incrementally when touched by a coherent change.
+通过路径清晰体现归属边界。新文件必须遵循此目标结构；对现有文件进行完整一致的变更时，可以逐步迁移。
 
-## Repository Layout
+## 仓库布局
 
 ```text
 lore-lingo/
-  .agents/skills/               Project-scoped Codex Skills
-  .github/workflows/            CI and release automation
-  docs/                         Durable architecture and operational docs
-  openspec/                     Capability specs and change artifacts
-  prototype/                    Non-production visual prototypes only
-  src/                          Vue/TypeScript frontend
-  src-tauri/                    Rust/Tauri desktop backend
-  package.json                  Frontend scripts and dependencies
-  pnpm-lock.yaml                Sole JavaScript lockfile
+  .agents/skills/               项目级 Codex Skill
+  .github/workflows/            持续集成与发布自动化
+  docs/                         长期维护的架构与运维文档
+  openspec/                     能力规格与变更产物
+  prototype/                    仅存放非生产视觉原型
+  src/                          Vue/TypeScript 前端
+  src-tauri/                    Rust/Tauri 桌面后端
+  package.json                  前端脚本与依赖
+  pnpm-lock.yaml                唯一的 JavaScript 锁文件
 ```
 
-## Frontend Layout
+## 前端布局
 
 ```text
 src/
   components/
-    ui/                         Reusable visual primitives
-    main-panel/                 Main-window feature components
-    translation-overlay/       Target location for translation-overlay components
-    lyric/                      Legacy path; migrate coherently and add no new files
-    settings/                   Settings feature components
-  composables/                  Reusable reactive orchestration
-  services/                     Typed Tauri/API clients; add when needed
-  types/                        Shared frontend contract types; add when needed
-  icons/                        Icon registry
-  styles/                       Global tokens and cross-window styles
-  App.vue                       Main window composition root
-  OverlayApp.vue                Translation-overlay composition root
-  main.ts                       Main entry
-  overlay.ts                    Overlay entry
+    ui/                         可复用视觉基础组件
+    main-panel/                 主窗口功能组件
+    translation-overlay/       翻译悬浮窗组件的目标目录
+    lyric/                      遗留路径；应完整迁移，不得新增文件
+    settings/                   设置功能组件
+  composables/                  可复用响应式编排
+  services/                     类型化 Tauri/API 客户端；按需添加
+  types/                        共享前端合约类型；按需添加
+  icons/                        图标注册表
+  styles/                       全局设计令牌与跨窗口样式
+  App.vue                       主窗口组合根组件
+  OverlayApp.vue                翻译悬浮窗组合根组件
+  main.ts                       主入口
+  overlay.ts                    翻译悬浮窗入口
 ```
 
-Rules:
+规则：
 
-- Components own rendering and interaction, not native integration or persistence.
-- Composables own Vue state and lifecycle orchestration, not raw platform details.
-- All direct Tauri `invoke` calls SHOULD move behind typed modules in `src/services/` as the codebase grows.
-- Shared wire types belong in `src/types/`; do not redefine the same command payload in multiple components.
-- `prototype/` MUST NOT be imported by production entries.
+- 组件负责渲染和交互，不负责原生集成或持久化。
+- 组合式函数负责 Vue 状态和生命周期编排，不负责原始平台细节。
+- 随着代码库增长，所有直接调用 Tauri `invoke` 的代码都应该移到 `src/services/` 的类型化模块之后。
+- 共享传输类型放在 `src/types/`；不得在多个组件中重复定义同一命令载荷。
+- 生产入口不得导入 `prototype/`。
 
-## Backend Layout
+## 后端布局
 
 ```text
 src-tauri/
-  capabilities/                 Tauri capability declarations
-  migrations/                   Append-only SQLite migrations
+  capabilities/                 Tauri 能力声明
+  migrations/                   仅追加的 SQLite 迁移
   src/
-    commands/                   Thin IPC handlers; add by domain
-    db/                         Connection, migrations, repositories
-    desktop/                    Desktop capability facade and capture sessions
-      platform/                 Target-gated Windows/macOS adapters
-    domain/                     Stable business types and rules
-    services/                   Use-case orchestration
-    lib.rs                      Application composition and registration
-    main.rs                     Binary entry only
+    commands/                   精简的 IPC 处理器；按领域添加
+    db/                         连接、迁移与仓储
+    desktop/                    桌面能力门面与捕获会话
+      platform/                 受目标平台约束的 Windows/macOS 适配器
+    domain/                     稳定的业务类型与规则
+    services/                   用例编排
+    lib.rs                      应用组合与注册
+    main.rs                     仅作为二进制入口
   Cargo.toml
   tauri.conf.json
 ```
 
-Rules:
+规则：
 
-- `lib.rs` and command modules MUST NOT accumulate domain algorithms.
-- Target-specific dependencies and unsafe code MUST remain under the relevant platform module.
-- Database queries MUST remain under `db/` repositories or focused database services.
-- Commands MUST expose use cases, never generic SQL, table names, filesystem paths, or native handles.
+- `lib.rs` 和命令模块不得堆积领域算法。
+- 目标平台特定依赖和不安全代码必须保留在对应平台模块下。
+- 数据库查询必须保留在 `db/` 仓储或职责明确的数据库服务中。
+- 命令必须暴露用例，绝不能暴露通用 SQL、表名、文件系统路径或原生句柄。
 
-## Naming
+## 命名
 
-- Vue components: `PascalCase.vue`.
-- TypeScript modules and composables: existing camel-case convention, composables prefixed with `use`.
-- Rust modules/files: `snake_case`.
-- OpenSpec capabilities and Skill folders: `kebab-case`.
-- New translation-overlay identifiers: `translationOverlay` in TypeScript and `translation-overlay` in paths/events; do not add new `lyric` identifiers.
-- SQLite migrations: zero-padded sequence plus snake-case description, for example `0002_add_capture_profiles.sql`.
-- Tests: mirror the source ownership boundary and use the framework-standard test suffix.
+- Vue 组件：`PascalCase.vue`。
+- TypeScript 模块和组合式函数：沿用现有驼峰命名约定，组合式函数以 `use` 开头。
+- Rust 模块和文件：`snake_case`。
+- OpenSpec 能力和 Skill 目录：`kebab-case`。
+- 新增翻译悬浮窗标识：TypeScript 中使用 `translationOverlay`，路径和事件中使用 `translation-overlay`；不得新增 `lyric` 标识。
+- SQLite 迁移：补零序号加下划线式描述，例如 `0002_add_capture_profiles.sql`。
+- 测试：映射源代码归属边界，并使用测试框架的标准后缀。
 
-## Placement Decision
+## 放置决策
 
-Before creating a file, identify its owner and consumers. If a file serves multiple unrelated domains, split the responsibility instead of creating a generic `utils` dumping ground.
+创建文件前，先确认其所有者和使用方。如果一个文件服务于多个无关领域，应拆分职责，不得创建通用的 `utils` 堆放目录。

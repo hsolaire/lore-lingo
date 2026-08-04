@@ -1,46 +1,45 @@
-# Backend Standards
+# 后端规范
 
-## Layering
+## 分层
 
 ```text
-Tauri command -> service/use case -> domain/repository/platform adapter
+Tauri 命令 -> 服务/用例 -> 领域/仓储/平台适配器
 ```
 
-- Commands validate and translate IPC data, call one use case, and return stable DTOs/errors.
-- Services coordinate capture, persistence, OCR, translation, and events.
-- Domain modules contain platform-neutral business rules and types.
-- Platform adapters contain Windows/macOS frameworks, handles, permissions, and unsafe code.
-- Repositories own SQLite queries and transaction boundaries.
+- 命令负责校验和转换 IPC 数据、调用一个用例，并返回稳定的数据传输对象或错误。
+- 服务负责协调捕获、持久化、OCR、翻译和事件。
+- 领域模块包含与平台无关的业务规则和类型。
+- 平台适配器包含 Windows/macOS 框架、句柄、权限和不安全代码。
+- 仓储负责 SQLite 查询和事务边界。
 
-## Rust Rules
+## Rust 规则
 
-- Use typed structs/enums instead of stringly typed internal state.
-- Return `Result` for fallible operations; do not panic on user data, permissions, I/O, or unavailable windows.
-- Convert internal errors to stable public error codes at the command boundary.
-- Avoid blocking the Tauri UI thread. Isolate blocking database/native calls or use a dedicated worker.
-- Bound queues and caches. Capture and OCR pipelines MUST define backpressure and cancellation.
-- Release native resources through RAII where possible; keep each `unsafe` block minimal and explain its invariant.
-- Gate operating-system dependencies and modules with target-specific Cargo configuration.
+- 使用有类型的结构体和枚举，不使用字符串表达内部状态类型。
+- 可能失败的操作返回 `Result`；不得因用户数据、权限、输入输出或窗口不可用而触发恐慌。
+- 在命令边界将内部错误转换为稳定的公开错误码。
+- 避免阻塞 Tauri 界面线程。隔离会阻塞的数据库或原生调用，或使用专用工作线程。
+- 限制队列和缓存容量。捕获与 OCR 流水线必须定义背压和取消机制。
+- 尽可能通过 RAII 释放原生资源；每个 `unsafe` 块必须保持最小范围并说明其不变量。
+- 使用面向目标平台的 Cargo 配置约束操作系统依赖和模块。
 
-## Tauri Rules
+## Tauri 规则
 
-- Grant the minimum capabilities needed by each window.
-- Register commands by domain and keep `lib.rs` focused on application composition.
-- Do not expose generic shell execution, arbitrary filesystem access, raw SQL, or native handles to WebViews.
-- Treat events as notifications; keep authoritative state in managed Rust services or durable storage.
-- Return safe user-facing errors and keep detailed native diagnostics out of production IPC payloads.
+- 仅授予每个窗口所需的最小能力。
+- 按领域注册命令，并让 `lib.rs` 专注于应用组合。
+- 不得向 WebView 暴露通用命令行执行、任意文件系统访问、原始 SQL 或原生句柄。
+- 将事件视为通知；权威状态应保存在受管理的 Rust 服务或持久化存储中。
+- 返回安全的用户可见错误，不得在生产 IPC 载荷中包含详细原生诊断信息。
 
-## Concurrency and Sessions
+## 并发与会话
 
-- Give every long-running operation an owner, cancellation path, terminal state, and cleanup path.
-- Support replacement semantics explicitly when only one session may run.
-- Prefer latest-value semantics for screen frames over unbounded FIFO queues.
-- Never hold a global mutex while performing slow network, encoding, or native capture work.
+- 每个长时间运行的操作都必须有所有者、取消路径、终止状态和清理路径。
+- 只能运行一个会话时，必须明确支持替换语义。
+- 屏幕帧优先采用最新值语义，不使用无界先进先出队列。
+- 执行缓慢的网络、编码或原生捕获工作时，绝不能持有全局互斥锁。
 
-## Validation
+## 验证
 
-- Run `cargo fmt --check --manifest-path src-tauri/Cargo.toml`.
-- Run `cargo check --manifest-path src-tauri/Cargo.toml` on the current platform.
-- Run focused `cargo test` and `cargo clippy` as those suites become available.
-- Compile target-gated code on native Windows and macOS CI; a macOS-only check cannot validate Windows modules.
-
+- 运行 `cargo fmt --check --manifest-path src-tauri/Cargo.toml`。
+- 在当前平台运行 `cargo check --manifest-path src-tauri/Cargo.toml`。
+- 相关测试套件可用后，运行有针对性的 `cargo test` 和 `cargo clippy`。
+- 在原生 Windows 和 macOS 持续集成环境中编译受目标平台约束的代码；仅在 macOS 上检查无法验证 Windows 模块。
