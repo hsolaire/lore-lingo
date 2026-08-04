@@ -26,6 +26,7 @@ serde_json = "1"
 screenshots = "0.8"
 base64 = "0.22"
 image = { version = "0.24", default-features = false, features = ["png"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.58", features = [
@@ -35,4 +36,16 @@ windows = { version = "0.58", features = [
   "Win32_UI_Shell",
   "Win32_Graphics_Gdi",
   "Win32_Storage_FileSystem",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+  "NSArray",
+  "NSData",
+  "NSDictionary",
+  "NSError",
+  "NSGeometry",
+  "NSString",
+  "std",
 ] }

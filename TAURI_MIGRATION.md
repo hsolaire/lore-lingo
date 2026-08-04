@@ -44,9 +44,9 @@
 src-tauri/
 ├── Cargo.toml              # Rust 项目 + 依赖（screenshots、base64）
 ├── build.rs                # Tauri 构建钩子（必须存在）
-├── tauri.conf.json         # 窗口配置：无边框、透明、420×640
+├── tauri.conf.json         # 窗口配置：无边框、透明、默认 420×480
 ├── capabilities/
-│   └── default.json        # 权限声明：置顶、关闭、最小化、shell
+│   └── default.json        # 权限声明：拖拽、置顶、关闭、最小化、shell
 └── src/
     ├── main.rs             # 二进制入口（调 lib::run）
     └── lib.rs              # 核心逻辑：capture_region、list_screens 命令

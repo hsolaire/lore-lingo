@@ -86,6 +86,14 @@ export const icons: Record<string, IconDef> = {
   x: {
     body: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   },
+  // macOS 自定义窗口控制 · 最小化
+  minus: {
+    body: '<path d="M5 12h14"/>',
+  },
+  // macOS 自定义窗口控制 · 最大化/还原
+  maximize: {
+    body: '<path d="M7 16h5v5Z" fill="currentColor" stroke="none"/><path d="M17 8h-5V3Z" fill="currentColor" stroke="none"/>',
+  },
   // 命中优先策略（对勾圆）
   checkRound: {
     body: '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>',

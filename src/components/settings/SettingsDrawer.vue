@@ -42,12 +42,18 @@ const activeTab = ref<Tab>('translate')
 <style scoped>
 .drawer {
   display: grid; grid-template-rows: 0fr;
+  flex: 0 1 0;
+  min-height: 0;
   transition: grid-template-rows .32s cubic-bezier(.4,0,.2,1);
   border-top: 1px solid transparent;
 }
-.drawer.open { grid-template-rows: 1fr; border-top-color: var(--border); }
-.drawer-inner { overflow: hidden; }
-.drawer-scroll { max-height: 340px; overflow-y: auto; padding: 4px 14px 14px; }
+.drawer.open {
+  grid-template-rows: 1fr;
+  flex-basis: 340px;
+  border-top-color: var(--border);
+}
+.drawer-inner { min-height: 0; overflow: hidden; }
+.drawer-scroll { height: 100%; overflow-y: auto; padding: 4px 14px 14px; }
 .drawer-scroll::-webkit-scrollbar { width: 8px; }
 .drawer-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
 
