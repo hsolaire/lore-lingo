@@ -1,77 +1,77 @@
-# Database Standards
+# 数据库规范
 
-Use `docs/database-design.md` as the authoritative schema design and `src-tauri/migrations/` as executable history.
+以 `docs/database-design.md` 作为权威模式设计，以 `src-tauri/migrations/` 作为可执行历史。
 
-## Ownership
+## 归属
 
-- Rust exclusively opens SQLite, executes migrations, and runs SQL.
-- Vue calls narrow typed commands and MUST NOT construct SQL or reference table names.
-- Keep runtime-only state such as active sessions and native window handles out of SQLite.
+- 只有 Rust 可以打开 SQLite、执行迁移和运行 SQL。
+- Vue 只调用范围明确的类型化命令，不得构造 SQL 或引用表名。
+- 活动会话和原生窗口句柄等仅存在于运行时的状态不得存入 SQLite。
 
-## Modules and Object Naming
+## 模块与对象命名
 
-Every application-owned table MUST use one of these domain prefixes:
+应用拥有的每张表都必须使用以下领域前缀之一：
 
-| Prefix | Owner | Examples |
+| 前缀 | 归属 | 示例 |
 | --- | --- | --- |
-| `db_` | SQLite lifecycle and internal database management | `db_schema_migrations` |
-| `sys_` | Application-level models, preferences, and device configuration | `sys_model_profiles`, `sys_window_states` |
-| `sub_` | Subtitle library, parsed entries, and subtitle search | `sub_files`, `sub_entries_fts` |
-| `tr_` | Translation sessions, history, search, and disposable cache | `tr_history`, `tr_cache` |
+| `db_` | SQLite 生命周期和内部数据库管理 | `db_schema_migrations` |
+| `sys_` | 应用级模型、偏好和设备配置 | `sys_model_profiles`、`sys_window_states` |
+| `sub_` | 字幕库、解析条目和字幕搜索 | `sub_files`、`sub_entries_fts` |
+| `tr_` | 翻译会话、历史、搜索和可丢弃缓存 | `tr_history`、`tr_cache` |
 
-- Treat prefixes as ownership boundaries, not SQLite schemas; the database remains one transaction boundary.
-- Use lowercase `snake_case` and plural table names except established mass nouns such as `history` and `cache`.
-- Keep FTS tables in the owning domain and suffix them with `_fts`.
-- Name normal indexes `ix_<table>_<purpose>`, unique indexes `ux_<table>_<purpose>`, and triggers `trg_<table>_<purpose>_<event>`.
-- Do not introduce another table prefix without updating this reference and `docs/database-design.md` in the same change.
+- 将前缀视为归属边界，不视为 SQLite 模式；数据库仍是一个事务边界。
+- 使用小写 `snake_case` 和复数表名，但 `history`、`cache` 等已有集合名词除外。
+- 全文搜索表保留在所属领域中，并使用 `_fts` 后缀。
+- 普通索引命名为 `ix_<table>_<purpose>`，唯一索引命名为 `ux_<table>_<purpose>`，触发器命名为 `trg_<table>_<purpose>_<event>`。
+- 引入新的表前缀时，必须在同一变更中更新本参考文档和 `docs/database-design.md`。
 
-## Schema Conventions
+## 模式约定
 
-- Use `INTEGER PRIMARY KEY` for local surrogate identifiers. Add `AUTOINCREMENT` only when rowid reuse is a demonstrated correctness problem.
-- Name foreign keys `<singular_entity>_id`, declare the referenced table explicitly, and choose `ON DELETE` behavior deliberately.
-- Use `INTEGER` plus `CHECK (... IN (0, 1))` for booleans and use positive names such as `is_enabled` or `save_history`.
-- Store timestamps as Unix milliseconds in `INTEGER` columns suffixed `_at`; suffix durations `_ms` and byte counts `_bytes`.
-- Store enum-like values as lowercase `TEXT` with a `CHECK` constraint when the allowed set is owned by the application.
-- Suffix JSON text columns `_json`, require `json_valid`, and constrain the top-level JSON type when it is known.
-- Keep hashes explicit (`*_hash` or `fingerprint`), document the algorithm, and validate the expected encoded length when fixed.
-- Prefer `STRICT` tables. Use `WITHOUT ROWID` for stable text or composite primary keys when it materially avoids a redundant rowid.
-- Keep exactly one migration-version authority; do not independently advance both a custom history table and `PRAGMA user_version`.
+- 本地代理标识使用 `INTEGER PRIMARY KEY`。只有已经证明行标识复用会导致正确性问题时，才添加 `AUTOINCREMENT`。
+- 外键命名为 `<singular_entity>_id`，明确声明引用的表，并有意识地选择 `ON DELETE` 行为。
+- 布尔值使用 `INTEGER` 和 `CHECK (... IN (0, 1))`，并使用 `is_enabled` 或 `save_history` 等正向名称。
+- 时间戳以 Unix 毫秒存入带 `_at` 后缀的 `INTEGER` 列；时长使用 `_ms` 后缀，字节数使用 `_bytes` 后缀。
+- 应用拥有允许值集合时，类枚举值使用小写 `TEXT` 并添加 `CHECK` 约束。
+- JSON 文本列使用 `_json` 后缀，必须通过 `json_valid` 校验；已知顶层 JSON 类型时还需约束该类型。
+- 哈希字段应明确使用 `*_hash` 或 `fingerprint`，记录算法；编码长度固定时校验预期长度。
+- 优先使用 `STRICT` 表。稳定文本主键或复合主键可在确实避免冗余行标识时使用 `WITHOUT ROWID`。
+- 只保留一个迁移版本权威来源；不得同时独立推进自定义历史表和 `PRAGMA user_version`。
 
-## Schema Documentation
+## 模式文档
 
-SQLite has no native `COMMENT ON TABLE/COLUMN` metadata.
+SQLite 没有原生的 `COMMENT ON TABLE/COLUMN` 元数据。
 
-- Put a concise table description immediately after `CREATE TABLE <name> (` and a concise column description on the defining line.
-- Enumerate owned status/enum values as `value=meaning`, state units for numeric time/size fields, and describe the top-level shape of JSON columns.
-- Treat inline DDL comments as inspection help, not structured metadata; keep `docs/database-design.md` authoritative.
-- Do not add a custom comments table unless a concrete runtime feature needs queryable schema descriptions.
+- 在 `CREATE TABLE <name> (` 后立即添加简短表说明，并在每个列定义行添加简短列说明。
+- 以 `value=含义` 的形式列出自有状态或枚举值，标明数值时间和大小字段的单位，并说明 JSON 列的顶层结构。
+- 将 DDL 行内注释视为检查辅助信息，不视为结构化元数据；`docs/database-design.md` 保持权威。
+- 除非具体运行时功能需要可查询的模式说明，否则不得添加自定义注释表。
 
-## Migrations
+## 迁移
 
-- Treat every committed/released migration as append-only and immutable.
-- Add schema changes in the next zero-padded migration file; never rewrite `0001_initial.sql` after it is adopted.
-- Wrap related DDL/data changes in an explicit transaction and update migration metadata consistently.
-- Make migrations deterministic, ordered, and safe to run exactly once.
-- Test both a fresh database and an upgrade from the previous schema version.
-- Include rollback/recovery notes for destructive or long-running transformations even when SQLite cannot perform an automatic down migration.
+- 每项已提交或已发布的迁移都只能追加且不可修改。
+- 在下一个补零序号迁移文件中添加模式变更；`0001_initial.sql` 一旦采用就不得重写。
+- 使用显式事务包装相关的 DDL 和数据变更，并一致地更新迁移元数据。
+- 迁移必须确定、有序，并且可以安全地恰好执行一次。
+- 同时测试全新数据库和从上一个模式版本升级。
+- 对破坏性或长时间运行的转换提供回滚或恢复说明，即使 SQLite 无法自动执行降级迁移。
 
-## Schema and Queries
+## 模式与查询
 
-- Use typed columns and constraints for fields that are validated, related, filtered, or sorted.
-- Use JSON only for low-frequency preferences or provider-specific options and enforce `json_valid`.
-- Enable foreign keys, WAL mode, and a bounded busy timeout for each connection.
-- Use transactions for multi-table writes and parameterized queries for every external value.
-- Add indexes from demonstrated query patterns; inspect query plans for history, subtitle, and cache hot paths.
-- Keep history and cache lifecycles separate.
+- 对需要校验、关联、筛选或排序的字段使用有类型的列和约束。
+- JSON 只用于低频偏好或服务提供方特定选项，并强制使用 `json_valid`。
+- 每个连接都启用外键、WAL 模式和有界忙碌超时。
+- 多表写入使用事务；每个外部值都使用参数化查询。
+- 根据已经证明的查询模式添加索引；检查历史、字幕和缓存热点路径的查询计划。
+- 历史和缓存使用独立生命周期。
 
-## Secrets and Privacy
+## 密钥与隐私
 
-- Store only keychain/credential-manager references in SQLite; never store API keys or auth headers.
-- Treat database files, backups, exports, and diagnostics as user-sensitive data.
-- Do not log source/translated text by default when it is not required for diagnostics.
+- SQLite 只存储钥匙串或凭据管理器引用；绝不存储 API 密钥或授权请求头。
+- 将数据库文件、备份、导出和诊断信息视为用户敏感数据。
+- 诊断不需要源文本或译文时，默认不得记录这些内容。
 
-## Repository Boundary
+## 仓储边界
 
-- Prefer repositories or focused database services over a generic key-value or `execute_sql` IPC API.
-- Map rows to domain types inside Rust and return stable DTOs to Vue.
-- Keep transaction scope at the use-case level when one action updates multiple repositories.
+- 优先使用仓储或职责明确的数据库服务，不使用通用键值接口或 `execute_sql` IPC API。
+- 在 Rust 内将数据行映射为领域类型，并向 Vue 返回稳定的数据传输对象。
+- 一个操作更新多个仓储时，在用例层维护事务范围。
