@@ -16,8 +16,9 @@ try {
   // Tauri not available (dev mode without app context)
 }
 
-const closeWin = () => win?.close()
-const minimizeWin = () => win?.minimize()
+const closeWin = () => void win?.close().catch(() => {})
+const minimizeWin = () => void win?.minimize().catch(() => {})
+const toggleMaximizeWin = () => void win?.toggleMaximize().catch(() => {})
 
 function startDragging(event: MouseEvent) {
   if (!win || event.button !== 0) return
@@ -29,9 +30,21 @@ function startDragging(event: MouseEvent) {
 <template>
   <header class="titlebar" @mousedown="startDragging">
     <div class="traffic" data-window-control>
-      <button type="button" class="traffic-dot r" title="关闭" aria-label="关闭窗口" @click="closeWin"></button>
-      <button type="button" class="traffic-dot y" title="最小化" aria-label="最小化窗口" @click="minimizeWin"></button>
-      <span class="traffic-dot g" aria-hidden="true"></span>
+      <button type="button" class="traffic-control close" title="关闭" aria-label="关闭窗口" @click="closeWin">
+        <span class="traffic-dot"><Icon name="x" /></span>
+      </button>
+      <button type="button" class="traffic-control minimize" title="最小化" aria-label="最小化窗口" @click="minimizeWin">
+        <span class="traffic-dot"><Icon name="minus" /></span>
+      </button>
+      <button
+        type="button"
+        class="traffic-control maximize"
+        title="最大化或还原"
+        aria-label="最大化或还原窗口"
+        @click="toggleMaximizeWin"
+      >
+        <span class="traffic-dot"><Icon name="maximize" /></span>
+      </button>
     </div>
     <div class="brand">
       <span class="logo" aria-hidden="true"><Icon name="search" /></span>
@@ -73,17 +86,37 @@ function startDragging(event: MouseEvent) {
   cursor: default;
   user-select: none;
 }
-.traffic { display: flex; gap: 8px; }
-.traffic-dot {
-  width: 12px; height: 12px; border: 0; border-radius: 50%; display: block; padding: 0;
+.traffic { display: flex; align-items: center; margin-left: -6px; }
+.traffic-control {
+  width: 23px; height: 30px; border: 0; padding: 0;
+  display: grid; place-items: center;
+  background: transparent; cursor: pointer;
 }
-.traffic button { cursor: pointer; }
-.traffic .r { background: oklch(66% 0.17 25); }
-.traffic .y { background: oklch(80% 0.13 85); }
-.traffic .g { background: oklch(72% 0.15 145); cursor: default; }
-.traffic button:focus-visible,
+.traffic-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 0.5px solid transparent;
+  transition: filter 120ms ease, transform 120ms ease;
+}
+.traffic-control.close .traffic-dot { background: #ff5f57; border-color: #e0443e; color: #7d0000; }
+.traffic-control.minimize .traffic-dot { background: #febc2e; border-color: #dea123; color: #995700; }
+.traffic-control.maximize .traffic-dot { background: #28c840; border-color: #1aab29; color: #006500; }
+.traffic-dot :deep(svg) {
+  width: 8px; height: 8px; opacity: 0;
+  stroke-width: 3.2;
+  transition: opacity 100ms ease;
+}
+.traffic-control.maximize .traffic-dot :deep(svg) { width: 10px; height: 10px; }
+.traffic:hover .traffic-dot :deep(svg),
+.traffic:focus-within .traffic-dot :deep(svg) { opacity: 1; }
+.traffic-control:hover .traffic-dot { filter: brightness(1.06) saturate(1.05); }
+.traffic-control:active .traffic-dot { filter: brightness(0.84); transform: scale(0.92); }
+.traffic-control:focus-visible,
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .traffic-dot, .traffic-dot :deep(svg) { transition: none; }
+}
+.brand { display: flex; align-items: center; gap: 8px; margin-left: -3px; }
 .brand .logo {
   width: 20px; height: 20px; border-radius: 6px;
   background: linear-gradient(135deg, var(--accent), oklch(64% 0.13 260));
