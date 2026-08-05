@@ -37,7 +37,7 @@
 ## 样式
 
 - 将设计令牌和跨窗口默认样式放在 `src/styles/`；功能样式限定在组件作用域内。
-- 将 Naive UI 默认样式视为实现脚手架，不视为 LensLingo 最终视觉设计。
+- 将 Naive UI 默认样式视为实现脚手架，不视为 LoreLingo 最终视觉设计。
 - macOS 工作阅读 `frontend-macos-27.md`，Windows 工作阅读 `frontend-windows-11.md`。
 - 平台透明度或背景模糊表现不一致时，提供不透明或半透明降级方案。
 - 固定格式控件和悬浮窗使用稳定的响应式尺寸。

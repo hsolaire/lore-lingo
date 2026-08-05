@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Split the single-window LensLingo app into two independent Tauri windows — `main` (420×640 main panel) and `subtitle` (content-sized transparent Subtitle Overlay) — eliminating the blank-space bug caused by sharing one window between two incompatible layouts.
+**Goal:** Split the single-window LoreLingo app into two independent Tauri windows — `main` (420×640 main panel) and `subtitle` (content-sized transparent Subtitle Overlay) — eliminating the blank-space bug caused by sharing one window between two incompatible layouts.
 
 **Architecture:** A new `subtitle` Tauri window is defined in `tauri.conf.json` with its own Vite entry point (`subtitle.html` / `src/subtitle.ts`). The `main` window continues to host `App.vue` (main panel only). `useSubtitle` is refactored to open/close/communicate with the subtitle window via Tauri's event system instead of toggling Vue state. Shared reactive state (`useTranslator`, `useCaptureSource`) is replaced by Tauri events for cross-window sync.
 
@@ -65,7 +65,7 @@ Open `src-tauri/tauri.conf.json`. In the `app.windows` array, append after the e
 ```json
 {
   "label": "subtitle",
-  "title": "LensLingo 悬浮字幕",
+  "title": "LoreLingo 悬浮字幕",
   "url": "subtitle.html",
   "width": 808,
   "height": 204,
@@ -92,7 +92,7 @@ The full `app.windows` array should now look like:
 "windows": [
   {
     "label": "main",
-    "title": "LensLingo",
+    "title": "LoreLingo",
     "width": 420,
     "height": 640,
     "minWidth": 380,
@@ -107,7 +107,7 @@ The full `app.windows` array should now look like:
   },
   {
     "label": "subtitle",
-    "title": "LensLingo 悬浮字幕",
+    "title": "LoreLingo 悬浮字幕",
     "url": "subtitle.html",
     "width": 808,
     "height": 204,
@@ -165,7 +165,7 @@ Create `subtitle.html` at the project root (same level as `index.html`). Copy `i
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LensLingo 悬浮字幕</title>
+    <title>LoreLingo 悬浮字幕</title>
   </head>
   <body>
     <div id="app"></div>

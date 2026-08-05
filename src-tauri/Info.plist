@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>LensLingo 需要屏幕录制权限以捕获翻译内容</string>
+	<string>LoreLingo 需要屏幕录制权限以捕获翻译内容</string>
 </dict>
 </plist>

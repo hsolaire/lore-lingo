@@ -1,13 +1,14 @@
 /* ============================================================
-   LensLingo · 跨窗口状态桥 (bridge.js)
+   LoreLingo · 跨窗口状态桥 (bridge.js)
    三个独立窗口（主面板 / 字幕 / 设置）通过共享状态联动。
 
    Web/预览环境：localStorage + `storage` 事件在标签页/窗口间广播。
    真实桌面客户端：把 read/write/subscribe 换成 IPC / 共享 store 即可，
-   页面侧调用不变（LensLingo.get / set / subscribe / openWindow）。
+   页面侧调用不变（LoreLingo.get / set / subscribe / openWindow）。
    ============================================================ */
 (function (global) {
-  const KEY = 'lenslingo:state';
+  const KEY = 'lorelingo:state';
+  const LEGACY_KEY = 'lenslingo:state';
 
   // 默认共享状态 —— 三个窗口都读写它
   const DEFAULT = {
@@ -45,7 +46,7 @@
 
   function read() {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY);
       if (!raw) return mergeState();
       return mergeState(JSON.parse(raw));
     } catch (_) { return mergeState(); }
@@ -87,7 +88,7 @@
       const feat = name === 'subtitle'
         ? 'width=820,height=260'
         : name === 'settings' ? 'width=520,height=680' : 'width=470,height=640';
-      try { global.open(file, 'lenslingo-' + name, feat); } catch (_) { global.open(file, '_blank'); }
+      try { global.open(file, 'lore-lingo-' + name, feat); } catch (_) { global.open(file, '_blank'); }
     }
   };
 
@@ -102,5 +103,5 @@
     } catch (_) {}
   });
 
-  global.LensLingo = API;
+  global.LoreLingo = API;
 })(window);

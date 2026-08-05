@@ -48,7 +48,7 @@ function startDragging(event: MouseEvent) {
     </div>
     <div class="brand">
       <span class="logo" aria-hidden="true"><Icon name="search" /></span>
-      <b>LensLingo</b>
+      <b>LoreLingo</b>
       <span class="live">实时</span>
     </div>
     <span class="spacer"></span>

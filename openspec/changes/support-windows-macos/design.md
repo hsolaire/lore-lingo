@@ -1,6 +1,6 @@
 ## Context
 
-LensLingo is a Vue 3 application hosted by Tauri 2. The current Rust entry point mixes Tauri command registration, screenshot capture, Windows window enumeration, and Windows icon extraction in one file. The frontend knows Windows-specific fields such as `exe`, the non-Windows window command returns an empty list, and region selection is simulated. The Subtitle Overlay is a fixed 1920 x 1080 transparent window, which does not model mixed-DPI or changing monitor layouts and can intercept input outside the visible subtitle bar.
+LoreLingo is a Vue 3 application hosted by Tauri 2. The current Rust entry point mixes Tauri command registration, screenshot capture, Windows window enumeration, and Windows icon extraction in one file. The frontend knows Windows-specific fields such as `exe`, the non-Windows window command returns an empty list, and region selection is simulated. The Subtitle Overlay is a fixed 1920 x 1080 transparent window, which does not model mixed-DPI or changing monitor layouts and can intercept input outside the visible subtitle bar.
 
 The supported release baseline for this change is:
 
@@ -18,7 +18,7 @@ macOS App Store distribution, Linux, mobile, OCR implementation, translation, an
 - Keep native handles, framework types, unsafe code, and platform conditionals inside Rust platform adapters.
 - Make source identity and coordinate conversion reliable across refreshes, Retina displays, Windows scaling, secondary displays, and negative virtual-desktop origins.
 - Deliver frames to future Rust-side OCR consumers without sending every raw frame through JSON IPC.
-- Prevent LensLingo windows from appearing in captured content or blocking the rest of the desktop.
+- Prevent LoreLingo windows from appearing in captured content or blocking the rest of the desktop.
 - Produce and verify native Windows and macOS release artifacts from native CI runners.
 
 **Non-Goals:**
@@ -125,13 +125,13 @@ Alternative considered: emit every frame as base64 through Tauri events. Rejecte
 
 ### 5. Native implementations are phased behind the same backend
 
-Windows discovery will retain `EnumWindows` initially but move it into `platform/windows.rs`, improve filtering, and keep process/icon access best-effort. Region capture may use the existing screenshot implementation as a bounded fallback, while window capture and the production streaming path use Windows Graphics Capture. LensLingo windows will be marked with `WDA_EXCLUDEFROMCAPTURE` when supported.
+Windows discovery will retain `EnumWindows` initially but move it into `platform/windows.rs`, improve filtering, and keep process/icon access best-effort. Region capture may use the existing screenshot implementation as a bounded fallback, while window capture and the production streaming path use Windows Graphics Capture. LoreLingo windows will be marked with `WDA_EXCLUDEFROMCAPTURE` when supported.
 
-macOS discovery and permission checks will use Core Graphics/AppKit APIs. The production capture path will use ScreenCaptureKit with a content filter that excludes LensLingo's own application/windows. Permission requests occur only after an explicit user action and return whether restart or settings navigation is required.
+macOS discovery and permission checks will use Core Graphics/AppKit APIs. The production capture path will use ScreenCaptureKit with a content filter that excludes LoreLingo's own application/windows. Permission requests occur only after an explicit user action and return whether restart or settings navigation is required.
 
 Backend-specific fallback selection is internal. `DesktopCapabilities` reports whether window capture, region capture, self-exclusion, and permission prompting are available so unsupported behavior can be disabled rather than simulated.
 
-Alternative considered: adopt one cross-platform capture crate as the public architecture. Rejected because crate capabilities and performance can change, while the stable project boundary should remain owned by LensLingo. A crate may still be used inside an adapter.
+Alternative considered: adopt one cross-platform capture crate as the public architecture. Rejected because crate capabilities and performance can change, while the stable project boundary should remain owned by LoreLingo. A crate may still be used inside an adapter.
 
 ### 6. Errors are stable, structured, and actionable
 

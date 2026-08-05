@@ -33,7 +33,7 @@ pub async fn start_capture_translation(
     for spec in &started.windows {
         let window =
             WebviewWindowBuilder::new(&app, &spec.label, WebviewUrl::App("selector.html".into()))
-                .title("LensLingo 截图翻译")
+                .title("LoreLingo 截图翻译")
                 .decorations(false)
                 .transparent(false)
                 .always_on_top(true)

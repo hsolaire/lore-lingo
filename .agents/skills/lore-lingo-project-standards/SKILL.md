@@ -1,9 +1,9 @@
 ---
 name: lore-lingo-project-standards
-description: 统一执行 LensLingo 仓库的项目结构、Vue/TypeScript 与 Naive UI 前端、macOS 27 与 Windows 11 界面、Rust/Tauri 后端、SQLite 迁移、Git Flow、测试、安全、持续集成、打包和发布工程规范。Codex 在 lore-lingo 仓库中规划、实现、审查、测试、提交或发布变更时使用。
+description: 统一执行 LoreLingo 仓库的项目结构、Vue/TypeScript 与 Naive UI 前端、macOS 27 与 Windows 11 界面、Rust/Tauri 后端、SQLite 迁移、Git Flow、测试、安全、持续集成、打包和发布工程规范。Codex 在 lore-lingo 仓库中规划、实现、审查、测试、提交或发布变更时使用。
 ---
 
-# LensLingo 项目工程规范
+# LoreLingo 项目工程规范
 
 每次修改仓库时都必须遵守这些规范。将现有源代码和已接受的 OpenSpec 产物视为当前架构；已有明确边界时，不得另行设计平行结构。
 

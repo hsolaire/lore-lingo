@@ -49,7 +49,7 @@ The system SHALL expose explicit start, status, and stop operations and SHALL su
 - **THEN** the previous session is stopped before the replacement becomes active
 
 #### Scenario: Application exits with a session active
-- **WHEN** LensLingo exits or its Tauri state is dropped
+- **WHEN** LoreLingo exits or its Tauri state is dropped
 - **THEN** capture workers are cancelled and native resources are released
 
 ### Requirement: Bounded latest-frame delivery
@@ -63,15 +63,15 @@ The capture coordinator MUST bound retained frame data and MUST prefer the lates
 - **WHEN** a preview is requested for an active session
 - **THEN** the service encodes the latest available frame as PNG without enabling continuous raw-frame IPC
 
-### Requirement: LensLingo content exclusion
-The capture backend SHALL exclude LensLingo's own persistent windows from captured frames when the operating system supports exclusion.
+### Requirement: LoreLingo content exclusion
+The capture backend SHALL exclude LoreLingo's own persistent windows from captured frames when the operating system supports exclusion.
 
 #### Scenario: Subtitle overlay overlaps the source
 - **WHEN** the subtitle overlay is visible over a captured screen or window
 - **THEN** the backend excludes it from the captured content when supported and reports self-exclusion capability accurately
 
 #### Scenario: Backend cannot guarantee exclusion
-- **WHEN** the active fallback backend cannot exclude LensLingo windows
+- **WHEN** the active fallback backend cannot exclude LoreLingo windows
 - **THEN** the capability response reports that limitation and the application avoids claiming guaranteed self-exclusion
 
 ### Requirement: Structured capture failures
