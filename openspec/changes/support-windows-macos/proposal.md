@@ -1,6 +1,6 @@
 ## Why
 
-LensLingo currently has a Tauri desktop shell that compiles on macOS, but its source discovery is Windows-only and its region selection, capture loop, permission flow, and release verification are incomplete. A platform boundary is needed now so Windows and macOS can reach functional parity without spreading operating-system checks through the Vue application.
+LoreLingo currently has a Tauri desktop shell that compiles on macOS, but its source discovery is Windows-only and its region selection, capture loop, permission flow, and release verification are incomplete. A platform boundary is needed now so Windows and macOS can reach functional parity without spreading operating-system checks through the Vue application.
 
 ## What Changes
 

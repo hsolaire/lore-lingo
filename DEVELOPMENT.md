@@ -131,7 +131,7 @@ pnpm tauri:dev
 pnpm dev
 
 # Rust 后端编译
-cargo build -p lenslingo
+cargo build -p lore-lingo
 
 # 完整开发构建
 pnpm tauri:dev
@@ -296,7 +296,7 @@ cargo clippy
 pnpm test
 
 # 运行 Rust 测试
-cargo test -p lenslingo
+cargo test -p lore-lingo
 ```
 
 ---
@@ -332,7 +332,7 @@ cargo test -p lenslingo
 pnpm test
 pnpm lint
 pnpm type-check
-cargo test -p lenslingo
+cargo test -p lore-lingo
 cargo clippy
 
 # 2. 更新版本

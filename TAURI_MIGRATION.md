@@ -1,4 +1,4 @@
-# LensLingo · Tauri 迁移说明
+# LoreLingo · Tauri 迁移说明
 
 记录本次将 Vue 3 + Vite 纯前端项目改造为 Tauri 2 桌面客户端的所有改动点及后续操作步骤。
 
@@ -117,8 +117,8 @@ pnpm tauri:build
 ```
 
 产物在 `src-tauri/target/release/bundle/`：
-- macOS → `LensLingo.app` + `LensLingo.dmg`
-- Windows → `LensLingo_x64-setup.exe` + `.msi`
+- macOS → `LoreLingo.app` + `LoreLingo.dmg`
+- Windows → `LoreLingo_x64-setup.exe` + `.msi`
 
 ---
 

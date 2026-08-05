@@ -1,8 +1,8 @@
-# LensLingo SQLite 数据库设计
+# LoreLingo SQLite 数据库设计
 
 ## 1. 设计范围
 
-LensLingo 当前是单机桌面应用，没有账号、租户或云同步。因此数据库中不引入虚假的 `users` 表，也不在每张表上放 `user_id = 1`。
+LoreLingo 当前是单机桌面应用，没有账号、租户或云同步。因此数据库中不引入虚假的 `users` 表，也不在每张表上放 `user_id = 1`。
 
 首版数据库负责持久化：
 
@@ -35,7 +35,7 @@ LensLingo 当前是单机桌面应用，没有账号、租户或云同步。因�
 
 ### 密钥不进入 SQLite
 
-`sys_model_profiles.secret_ref` 和 `sys_ocr_settings.secret_ref` 保存系统钥匙串中的条目标识，例如 `lenslingo/model-profile/3`，API Key 本体使用 macOS Keychain、Windows Credential Manager 或 Linux Secret Service 保存。`options_json` 也不能存放鉴权请求头。SQLite 文件、日志、备份和导出中都不应出现明文密钥。
+`sys_model_profiles.secret_ref` 和 `sys_ocr_settings.secret_ref` 保存系统钥匙串中的条目标识，例如 `lore-lingo/model-profile/3`，API Key 本体使用 macOS Keychain、Windows Credential Manager 或 Linux Secret Service 保存。`options_json` 也不能存放鉴权请求头。SQLite 文件、日志、备份和导出中都不应出现明文密钥。
 
 ### 历史与缓存分离
 
@@ -241,7 +241,7 @@ erDiagram
 
 ### 应用启动
 
-1. Rust 打开应用数据目录下的 `lenslingo.sqlite3`。
+1. Rust 打开应用数据目录下的 `lore-lingo.sqlite3`。
 2. 每次连接执行 `PRAGMA foreign_keys = ON`、`PRAGMA journal_mode = WAL`、`PRAGMA busy_timeout = 5000`。
 3. 按版本顺序执行 migration。
 4. 一次性加载单例设置、模型列表、快捷键和窗口状态到前端状态层。

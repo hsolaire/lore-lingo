@@ -17,7 +17,7 @@
 - [ ] 3.1 Implement managed source catalogs with monotonic revisions and private mappings from opaque IDs to native source references
 - [ ] 3.2 Implement capability, permission-status, permission-request, and source-discovery Tauri commands against `DesktopService`
 - [ ] 3.3 Reject stale catalog revisions and missing sources with stable errors, including tests for native-handle reuse protection
-- [ ] 3.4 Filter LensLingo's own main, subtitle, and selector windows from user-selectable discovery results
+- [ ] 3.4 Filter LoreLingo's own main, subtitle, and selector windows from user-selectable discovery results
 
 ## 4. Capture Coordinator
 
@@ -34,16 +34,16 @@
 - [ ] 5.3 Replace global-coordinate region capture with the tested monitor-local transform and verify 100, 150, and 200 percent scaling on primary and secondary displays
 - [ ] 5.4 Complete a bounded Windows Graphics Capture spike that proves window capture, cancellation, frame format conversion, and supported minimum Windows versions
 - [ ] 5.5 Implement Windows window capture sessions behind `PlatformBackend` and map closed, unavailable, blank, and protected sources to structured errors
-- [ ] 5.6 Apply `WDA_EXCLUDEFROMCAPTURE` to LensLingo windows where supported and report accurate self-exclusion capability when unavailable
+- [ ] 5.6 Apply `WDA_EXCLUDEFROMCAPTURE` to LoreLingo windows where supported and report accurate self-exclusion capability when unavailable
 
 ## 6. macOS Adapter
 
 - [ ] 6.1 Add target-gated Core Graphics/AppKit and ScreenCaptureKit bindings without introducing macOS dependencies into Windows builds
 - [ ] 6.2 Implement screen-capture permission preflight, explicit request, denied/settings, and restart-required states
-- [ ] 6.3 Implement macOS monitor and on-screen window discovery with best-effort application names/icons and LensLingo self-filtering
+- [ ] 6.3 Implement macOS monitor and on-screen window discovery with best-effort application names/icons and LoreLingo self-filtering
 - [ ] 6.4 Complete a bounded ScreenCaptureKit spike that proves region/window capture, content filtering, cancellation, and Intel/Apple Silicon compilation
 - [ ] 6.5 Implement macOS region and window capture sessions behind `PlatformBackend`, including frame conversion and structured stale/protected-source errors
-- [ ] 6.6 Exclude LensLingo application windows with ScreenCaptureKit content filters and verify permission revoke/regrant behavior
+- [ ] 6.6 Exclude LoreLingo application windows with ScreenCaptureKit content filters and verify permission revoke/regrant behavior
 
 ## 7. Frontend Contract Migration
 
@@ -59,7 +59,7 @@
 - [x] 8.2 Replace the fixed 1920 x 1080 subtitle overlay with a content-sized native window that resizes to measured content and leaves unrelated desktop areas interactive
 - [ ] 8.3 Persist subtitle placement by monitor and normalized anchor, clamp it after scale/topology changes, and recover to the primary monitor when needed
 - [ ] 8.4 Add opaque/translucent visual fallbacks for unsupported or inconsistent transparency/backdrop behavior in WebView2 and WKWebView
-- [ ] 8.5 Remove temporary selector windows before capture starts and verify that no invisible LensLingo window continues intercepting desktop input
+- [ ] 8.5 Remove temporary selector windows before capture starts and verify that no invisible LoreLingo window continues intercepting desktop input
 
 ## 9. Legacy Removal and Regression Coverage
 

@@ -1,4 +1,4 @@
-# 🎬 LensLingo
+# 🎬 LoreLingo
 
 **实时屏幕翻译工具** — 一个跨平台的桌面应用，支持实时 OCR 识别和智能翻译任何屏幕内容。
 
@@ -288,4 +288,4 @@ MIT License - 详见 [LICENSE](./LICENSE)
 
 ---
 
-**LensLingo** — *看见世界的语言*
+**LoreLingo** — *看见世界的语言*

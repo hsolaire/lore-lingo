@@ -1,4 +1,4 @@
-# LensLingo 数据库 ER 图（完整字段版）
+# LoreLingo 数据库 ER 图（完整字段版）
 
 该图与 `src-tauri/migrations/0001_initial.sql` 保持一致。字段注释中的 `JSON object` / `JSON array` 表示 SQLite 中经过 `json_valid` 和顶层类型约束的 `TEXT`；时间字段均为 Unix 毫秒。
 
