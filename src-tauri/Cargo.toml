@@ -21,6 +21,7 @@ tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+rusqlite = { version = "=0.39.0", features = ["bundled"] }
 
 # 屏幕截图（macOS / Windows / Linux 均支持）
 screenshots = "0.8"

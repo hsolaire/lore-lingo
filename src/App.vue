@@ -5,15 +5,20 @@ import { useCaptureSource } from '@/composables/useCaptureSource'
 import CaptureFrame from '@/components/CaptureFrame.vue'
 import AppToast from '@/components/AppToast.vue'
 import MainPanel from '@/components/main-panel/MainPanel.vue'
+import { useBootstrap } from '@/composables/useBootstrap'
+import { applyBootstrapSnapshot } from '@/composables/useTranslator'
 
 const { selecting, reselect } = useCaptureSource()
+const { bootstrap, reloadBootstrap } = useBootstrap()
 
 watchEffect(() => {
   document.body.classList.toggle('selecting', selecting.value)
+  if (bootstrap.value.status === 'ready') {
+    applyBootstrapSnapshot(bootstrap.value.snapshot)
+  }
 })
 
-// The subtitle window emits capture:reselect because this state and body class
-// selecting ref and body class live in the main window's process.
+// 悬浮字幕通过 capture:reselect 通知主页重新选择，因为选择状态和 body 样式只存在于主页窗口。
 const unlisteners: UnlistenFn[] = []
 
 onMounted(async () => {
@@ -31,7 +36,40 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <CaptureFrame />
-  <MainPanel />
-  <AppToast />
+  <template v-if="bootstrap.status === 'ready'">
+    <CaptureFrame />
+    <MainPanel />
+    <AppToast />
+  </template>
+  <main v-else class="bootstrap-state" aria-live="polite">
+    <p v-if="bootstrap.status === 'loading'">正在加载本地配置…</p>
+    <template v-else>
+      <p>{{ bootstrap.error }}</p>
+      <button v-if="bootstrap.status === 'database_error'" type="button" @click="reloadBootstrap">
+        重试
+      </button>
+    </template>
+  </main>
 </template>
+
+<style scoped>
+.bootstrap-state {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--fg);
+  text-align: center;
+}
+
+.bootstrap-state button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: var(--glass-hi);
+  color: inherit;
+  cursor: pointer;
+}
+</style>

@@ -4,15 +4,18 @@ use serde::Serialize;
 use std::sync::Arc;
 use tauri::command;
 
-mod commands;
+pub mod commands;
+pub mod db;
 mod desktop;
-mod domain;
-mod services;
+pub mod domain;
+pub mod services;
 
+use commands::app::get_bootstrap_snapshot;
 use commands::capture_translation::{
     cancel_capture_translation, capture_selector_payload, complete_capture_translation,
     start_capture_translation,
 };
+use services::bootstrap::BootstrapService;
 use services::capture_translation::CaptureTranslationService;
 
 #[cfg(target_os = "windows")]
@@ -262,8 +265,23 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(Arc::new(capture_translation))
+        .setup(|app| {
+            use tauri::Manager;
+
+            let bootstrap = app
+                .path()
+                .app_data_dir()
+                .ok()
+                .map(|directory| {
+                    BootstrapService::new(db::connection::Database::initialize(&directory))
+                })
+                .unwrap_or_else(BootstrapService::unavailable);
+            app.manage(Arc::new(bootstrap));
+            Ok(())
+        })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
+            get_bootstrap_snapshot,
             capture_region,
             list_screens,
             list_windows,

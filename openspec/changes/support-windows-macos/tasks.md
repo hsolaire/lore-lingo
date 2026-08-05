@@ -1,3 +1,5 @@
+> 2026-08-05 基线复核：本阶段新增的启动 DTO、SQLite 和启动快照不等同于跨平台 DesktopService、来源目录或平台适配器，因此除已有的 8.2 外不新增完成项。
+
 ## 1. Toolchain and Contract Baseline
 
 - [ ] 1.1 Add a pinned `rust-toolchain.toml`, standardize project scripts on pnpm, and document the supported Windows/macOS targets without modifying unrelated database dependencies

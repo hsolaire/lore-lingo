@@ -48,6 +48,7 @@ export interface PublicError {
   code: string
   message: string
   recoverable: boolean
+  action?: string
 }
 
 export interface CaptureTranslationEvent {

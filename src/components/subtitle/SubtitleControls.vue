@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { emit } from '@tauri-apps/api/event'
 import { useSubtitle } from '@/composables/useSubtitle'
+import { useTranslator } from '@/composables/useTranslator'
 import Icon from '@/components/ui/Icon.vue'
 
 defineProps<{ pinned: boolean }>()
@@ -11,9 +12,9 @@ const emitVue = defineEmits<{
 }>()
 
 const { hide, close } = useSubtitle()
+const { sessionActive } = useTranslator()
 
-// Fix I-1: reselect must run in the main window (body class, useCaptureSource
-// singleton). Emit an event so App.vue handles it there.
+// 重新选择必须由主页执行，因为选择状态和页面样式只存在于主页窗口。
 async function requestReselect() {
   try { await emit('capture:reselect', {}) } catch (_) {}
 }
@@ -22,7 +23,9 @@ async function requestReselect() {
 
 <template>
   <div class="subtitle-controls">
-    <span class="cnow"><span class="dot"></span>VLC · 实时</span>
+    <span class="cnow">
+      <span v-if="sessionActive" class="dot"></span>{{ sessionActive ? '翻译中' : '待机' }}
+    </span>
     <button class="cbtn" title="重选捕获" aria-label="重选捕获" @click="requestReselect">
       <Icon name="crop" />
     </button>

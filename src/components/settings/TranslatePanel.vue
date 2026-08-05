@@ -8,7 +8,7 @@ const { toast } = useToast()
 
 const provider = ref('OpenAI · GPT-4o mini')
 const apiBase = ref('https://api.openai.com/v1')
-const apiKey = ref('sk-live-9f2c8a71b4e0d3')
+const apiKey = ref('')
 const keyVisible = ref(false)
 const srcLang = ref('English')
 const tgtLang = ref('简体中文')

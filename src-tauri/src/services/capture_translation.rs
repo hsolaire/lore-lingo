@@ -325,6 +325,7 @@ impl From<CaptureTranslationError> for PublicError {
             code: code.into(),
             message: message.into(),
             recoverable,
+            action: recoverable.then(|| "retry".into()),
         }
     }
 }

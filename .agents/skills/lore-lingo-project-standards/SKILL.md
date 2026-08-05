@@ -21,7 +21,7 @@ description: 统一执行 LoreLingo 仓库的项目结构、Vue/TypeScript 与 N
 
 | 任务范围 | 必读参考文档 |
 | --- | --- |
-| 任何源代码或目录变更 | `directory-structure.md`、`testing-quality.md` |
+| 任何源代码或目录变更 | `directory-structure.md`、`code-comments.md`、`testing-quality.md` |
 | Vue、TypeScript、CSS、组件、组合式函数、Tauri 前端 API | `frontend.md` |
 | Naive UI 组件、提供器、主题、图标或前端依赖 | `frontend.md`、`frontend-naive-ui.md`、`security.md` |
 | macOS 窗口呈现、Liquid Glass、平台主题或原生材质 | `frontend.md`、`frontend-naive-ui.md`、`frontend-macos-27.md`、`backend.md` |
@@ -40,6 +40,7 @@ description: 统一执行 LoreLingo 仓库的项目结构、Vue/TypeScript 与 N
 
 - 保留用户拥有的改动和工作区中与当前任务无关的改动。
 - 所有面向用户的输出和仓库文档必须使用简体中文。`.agents/` 下的 Skill 描述、指令、参考文档和界面元数据等自然语言内容必须使用简体中文。README 文件可以同时使用简体中文和英文。代码标识符、协议字段、命令、第三方 API 字面量及其他机器定义文本应保留其要求的语言。
+- 项目自有代码的注释必须使用简体中文；复杂且较长的逻辑必须按 `步骤 1. ...`、`步骤 2. ...`、`步骤 3. ...` 的格式分段说明处理顺序。
 - 产品术语统一使用“悬浮字幕”（`Subtitle Overlay`）。PascalCase 标识使用 `Subtitle`，驼峰标识、路径、事件和 Tauri 窗口标签使用 `subtitle`。
 - Vue 中不得出现原生句柄、原始 SQL 或平台框架类型。
 - Tauri 命令处理器必须保持精简；领域行为放在 Rust 服务中，操作系统行为放在平台适配器中。
