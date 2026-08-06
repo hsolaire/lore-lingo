@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -27,6 +29,21 @@ describe('独立设置页', () => {
     expect(wrapper.get('#settings-panel-translation').attributes('aria-labelledby')).toBe(
       'settings-tab-translation',
     )
+  })
+
+  it('按原型为每个一级导航提供独立的图标容器', () => {
+    const wrapper = mount(SettingsShell)
+
+    expect(wrapper.findAll('.nav-icon')).toHaveLength(4)
+  })
+
+  it('按原型使用二十像素的内容区顶部留白', async () => {
+    const source = await readFile(
+      resolve(process.cwd(), 'src/components/settings/SettingsShell.vue'),
+      'utf8',
+    )
+
+    expect(source).toMatch(/\.settings-content \{[^}]*padding: 20px 22px;/)
   })
 
   it('支持切换一级导航并保持 tab 与 panel 的无障碍关系', async () => {

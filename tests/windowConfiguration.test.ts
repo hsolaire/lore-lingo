@@ -30,8 +30,8 @@ describe('三窗口构建配置', () => {
       url: 'settings.html',
       visible: false,
       decorations: false,
-      width: 520,
-      height: 680,
+      width: 720,
+      height: 612,
     })
   })
 

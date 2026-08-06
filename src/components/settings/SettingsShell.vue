@@ -112,8 +112,10 @@ function startDragging(event: MouseEvent) {
           :aria-controls="`settings-panel-${tab.id}`"
           @click="activateTab(tab.id)"
         >
-          <NIcon :component="tab.icon" size="17" />
-          <span>{{ tab.label }}</span>
+          <span class="nav-icon" aria-hidden="true">
+            <NIcon :component="tab.icon" size="16" />
+          </span>
+          <span class="nav-label">{{ tab.label }}</span>
         </button>
       </nav>
 
@@ -185,21 +187,23 @@ function startDragging(event: MouseEvent) {
 .settings-brand > span:last-child { color: var(--faint); font-size: 10px; }
 .brand-icon { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; color: white; background: linear-gradient(135deg, var(--accent), oklch(64% .13 260)); }
 .title-spacer { flex: 1; }
-.settings-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 142px minmax(0, 1fr); }
-.settings-nav { display: flex; flex-direction: column; gap: 5px; padding: 15px 10px; border-right: 1px solid var(--border); background: color-mix(in oklch, var(--glass-strong) 72%, transparent); }
-.nav-title { padding: 0 9px 8px; color: var(--faint); font-size: 10px; font-weight: 650; letter-spacing: .12em; }
-.nav-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 39px; padding: 0 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; font: 550 12px/1 var(--font); text-align: left; transition: background 160ms ease, color 160ms ease, border-color 160ms ease; }
+.settings-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 208px minmax(0, 1fr); }
+.settings-nav { display: flex; flex-direction: column; gap: 4px; padding: 14px 12px; border-right: 1px solid var(--border); background: color-mix(in oklch, var(--glass-strong) 72%, transparent); }
+.nav-title { padding: 4px 10px 10px; color: var(--faint); font: 500 10px/1 var(--mono); letter-spacing: .12em; }
+.nav-item { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; min-height: 52px; padding: 10px 11px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; font: 550 12px/1 var(--font); text-align: left; transition: background 160ms ease, color 160ms ease, border-color 160ms ease; }
 .nav-item:hover { background: var(--glass-hi); color: var(--fg); }
-.nav-item.active { color: var(--fg); border-color: var(--border); background: var(--accent-dim); }
-.nav-item.active::before { content: ''; position: absolute; left: -7px; width: 3px; height: 19px; border-radius: 2px; background: var(--accent); }
-.nav-item.active :deep(svg) { color: var(--accent); }
+.nav-item.active { color: var(--fg); border-color: color-mix(in oklch, var(--accent) 30%, transparent); background: var(--accent-dim); }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+.nav-icon { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in oklch, var(--surface-muted) 60%, transparent); color: var(--muted); transition: inherit; }
+.nav-item.active .nav-icon { color: var(--accent); border-color: color-mix(in oklch, var(--accent) 35%, transparent); background: color-mix(in oklch, var(--accent) 12%, transparent); }
+.nav-label { color: var(--fg); font: 550 13px/1.2 var(--font); }
 .nav-item:focus-visible, .close-control:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.settings-content { min-width: 0; overflow-y: auto; padding: 22px 22px 26px; }
+.settings-content { min-width: 0; overflow-y: auto; padding: 20px 22px; }
 .settings-content > [role='tabpanel'][hidden] { display: none; }
 .settings-content::-webkit-scrollbar { width: 8px; }
 .settings-content::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: var(--border-hi); background-clip: padding-box; }
-@media (max-width: 440px) {
-  .settings-layout { grid-template-columns: 104px minmax(0, 1fr); }
+@media (max-width: 640px) {
+  .settings-layout { grid-template-columns: 160px minmax(0, 1fr); }
   .settings-nav { padding-inline: 7px; }
   .nav-item { gap: 7px; padding-inline: 8px; }
   .settings-content { padding: 18px 14px 22px; }
