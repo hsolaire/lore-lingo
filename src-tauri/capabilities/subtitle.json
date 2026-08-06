@@ -1,0 +1,16 @@
+{
+  "$schema": "https://schemas.tauri.app/v2/capabilities.json",
+  "identifier": "subtitle",
+  "description": "LoreLingo 悬浮字幕窗口能力集",
+  "windows": ["subtitle"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-set-size",
+    "core:window:allow-start-dragging",
+    "core:window:allow-start-resize-dragging",
+    "core:window:allow-set-always-on-top",
+    "core:event:allow-emit",
+    "core:event:allow-listen"
+  ]
+}

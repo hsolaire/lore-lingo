@@ -74,6 +74,24 @@ impl PublicError {
             action: None,
         }
     }
+
+    pub fn invalid_window_label() -> Self {
+        Self {
+            code: "invalid_window_label".into(),
+            message: "请求的应用窗口标签无效。".into(),
+            recoverable: false,
+            action: None,
+        }
+    }
+
+    pub fn window_unavailable() -> Self {
+        Self {
+            code: "window_unavailable".into(),
+            message: "目标窗口暂时不可用，请稍后重试。".into(),
+            recoverable: true,
+            action: Some("retry".into()),
+        }
+    }
 }
 
 #[cfg(test)]

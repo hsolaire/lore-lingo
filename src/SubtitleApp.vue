@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
+import AppProviders from '@/components/AppProviders.vue'
 import AppToast from '@/components/AppToast.vue'
 import SubtitleBar from '@/components/subtitle/SubtitleBar.vue'
 import { useSubtitleBridge } from '@/composables/useSubtitleBridge'
@@ -20,19 +21,21 @@ watchEffect(() => {
 </script>
 
 <template>
-  <template v-if="bootstrap.status === 'ready'">
-    <SubtitleBar :external-peek="peekTrigger" />
-    <AppToast />
-  </template>
-  <main v-else class="bootstrap-state" aria-live="polite">
-    <p v-if="bootstrap.status === 'loading'">正在加载悬浮字幕…</p>
-    <template v-else>
-      <p>{{ bootstrap.error }}</p>
-      <button v-if="bootstrap.status === 'database_error'" type="button" @click="reloadBootstrap">
-        重试
-      </button>
+  <AppProviders>
+    <template v-if="bootstrap.status === 'ready'">
+      <SubtitleBar :external-peek="peekTrigger" />
+      <AppToast />
     </template>
-  </main>
+    <main v-else class="bootstrap-state" aria-live="polite">
+      <p v-if="bootstrap.status === 'loading'">正在加载悬浮字幕…</p>
+      <template v-else>
+        <p>{{ bootstrap.error }}</p>
+        <button v-if="bootstrap.status === 'database_error'" type="button" @click="reloadBootstrap">
+          重试
+        </button>
+      </template>
+    </main>
+  </AppProviders>
 </template>
 
 <style scoped>

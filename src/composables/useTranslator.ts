@@ -1,8 +1,8 @@
 import { ref, watch, type DeepReadonly } from 'vue'
-import { getCurrentWindow } from '@tauri-apps/api/window'
 import { emit } from '@tauri-apps/api/event'
 import { useToast } from './useToast'
 import type { BootstrapSnapshot } from '@/types/app'
+import { currentWindowClient } from '@/services/windowClient'
 
 // 单例翻译状态：主面板与悬浮字幕共享原文、译文和语言方向。
 const srcText = ref('')
@@ -93,7 +93,7 @@ export function useTranslator() {
   async function togglePin() {
     const nextState = !pinned.value
     try {
-      await getCurrentWindow().setAlwaysOnTop(nextState)
+      await currentWindowClient.setAlwaysOnTop(nextState)
       pinned.value = nextState
     } catch (_) {}
     toast(pinned.value ? '窗口已置顶' : '取消置顶')

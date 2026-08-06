@@ -15,6 +15,7 @@ use commands::capture_translation::{
     cancel_capture_translation, capture_selector_payload, complete_capture_translation,
     start_capture_translation,
 };
+use commands::windows::{hide_window, list_app_windows, show_or_focus_window};
 use services::bootstrap::BootstrapService;
 use services::capture_translation::CaptureTranslationService;
 
@@ -289,6 +290,9 @@ pub fn run() {
             capture_selector_payload,
             complete_capture_translation,
             cancel_capture_translation,
+            list_app_windows,
+            show_or_focus_window,
+            hide_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

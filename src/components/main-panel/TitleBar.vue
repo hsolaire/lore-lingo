@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import { getCurrentWindow } from '@tauri-apps/api/window'
-import { useSubtitle } from '@/composables/useSubtitle'
-import { useSettings } from '@/composables/useSettings'
 import { useTranslator } from '@/composables/useTranslator'
+import { useWindowNavigation } from '@/composables/useWindowNavigation'
+import { currentWindowClient } from '@/services/windowClient'
 import Icon from '@/components/ui/Icon.vue'
 
-const { show: showSubtitle } = useSubtitle()
-const { drawerOpen, toggleDrawer } = useSettings()
+const { openSettings, openSubtitle } = useWindowNavigation('main')
 const { pinned, togglePin } = useTranslator()
 
-let win: ReturnType<typeof getCurrentWindow> | null = null
-try {
-  win = getCurrentWindow()
-} catch (_) {
-  // Tauri not available (dev mode without app context)
-}
-
-const closeWin = () => void win?.close().catch(() => {})
-const minimizeWin = () => void win?.minimize().catch(() => {})
-const toggleMaximizeWin = () => void win?.toggleMaximize().catch(() => {})
+const closeWin = () => void currentWindowClient.close().catch(() => {})
+const minimizeWin = () => void currentWindowClient.minimize().catch(() => {})
+const toggleMaximizeWin = () => void currentWindowClient.toggleMaximize().catch(() => {})
 
 function startDragging(event: MouseEvent) {
-  if (!win || event.button !== 0) return
+  if (event.button !== 0) return
   if (event.target instanceof Element && event.target.closest('[data-window-control]')) return
-  void win.startDragging().catch(() => {})
+  void currentWindowClient.startDragging().catch(() => {})
 }
 </script>
 
@@ -52,7 +43,7 @@ function startDragging(event: MouseEvent) {
       <span class="live">实时</span>
     </div>
     <span class="spacer"></span>
-    <button class="icon-btn" data-window-control title="打开悬浮字幕" aria-label="打开悬浮字幕" @click="showSubtitle">
+    <button class="icon-btn" data-window-control title="打开悬浮字幕" aria-label="打开悬浮字幕" @click="openSubtitle">
       <Icon name="music" />
     </button>
     <button
@@ -68,10 +59,9 @@ function startDragging(event: MouseEvent) {
     <button
       class="icon-btn"
       data-window-control
-      :class="{ active: drawerOpen }"
-      title="设置"
+      title="打开设置"
       aria-label="设置"
-      @click="toggleDrawer"
+      @click="openSettings"
     >
       <Icon name="settings" />
     </button>

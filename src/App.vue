@@ -2,6 +2,7 @@
 import { watchEffect, onMounted, onUnmounted } from 'vue'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useCaptureSource } from '@/composables/useCaptureSource'
+import AppProviders from '@/components/AppProviders.vue'
 import CaptureFrame from '@/components/CaptureFrame.vue'
 import AppToast from '@/components/AppToast.vue'
 import MainPanel from '@/components/main-panel/MainPanel.vue'
@@ -36,20 +37,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <template v-if="bootstrap.status === 'ready'">
-    <CaptureFrame />
-    <MainPanel />
-    <AppToast />
-  </template>
-  <main v-else class="bootstrap-state" aria-live="polite">
-    <p v-if="bootstrap.status === 'loading'">正在加载本地配置…</p>
-    <template v-else>
-      <p>{{ bootstrap.error }}</p>
-      <button v-if="bootstrap.status === 'database_error'" type="button" @click="reloadBootstrap">
-        重试
-      </button>
+  <AppProviders>
+    <template v-if="bootstrap.status === 'ready'">
+      <CaptureFrame />
+      <MainPanel />
+      <AppToast />
     </template>
-  </main>
+    <main v-else class="bootstrap-state" aria-live="polite">
+      <p v-if="bootstrap.status === 'loading'">正在加载本地配置…</p>
+      <template v-else>
+        <p>{{ bootstrap.error }}</p>
+        <button v-if="bootstrap.status === 'database_error'" type="button" @click="reloadBootstrap">
+          重试
+        </button>
+      </template>
+    </main>
+  </AppProviders>
 </template>
 
 <style scoped>
