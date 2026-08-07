@@ -7,6 +7,7 @@
   --glass:        oklch(10% 0.02 260 / 0.75);
   --glass-strong: oklch(12% 0.025 260 / 0.88);
   --glass-hi:     oklch(72% 0.02 260 / 0.10);
+  --surface-muted:oklch(72% 0.02 260 / 0.07);
   --fg:           oklch(96% 0.01 250);
   --muted:        oklch(72% 0.015 255);
   --faint:        oklch(60% 0.015 255);
@@ -15,6 +16,7 @@
   --accent:       oklch(72% 0.14 220);
   --accent-dim:   oklch(72% 0.14 220 / 0.16);
   --accent-fg:    oklch(22% 0.03 240);
+  --focus:        oklch(78% 0.13 220);
   --ok:           oklch(76% 0.15 155);
   --ok-dim:       oklch(76% 0.15 155 / 0.16);
   --warn:         oklch(80% 0.13 75);
@@ -65,3 +67,31 @@ body.selecting .capture-frame { display: block; animation: framePulse 1.6s ease-
 @keyframes framePulse { 50% { border-color: oklch(72% 0.14 220 / 0.5); } }
 @keyframes blink { 50% { opacity: .35; } }
 @keyframes fade { from { opacity: 0; transform: translateY(4px); } }
+
+/* 用户减少透明度时，以不透明表面替代系统材质，避免文字与桌面背景混合。 */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass: oklch(14% 0.02 260);
+    --glass-strong: oklch(12% 0.02 260);
+    --surface-muted: oklch(18% 0.02 260);
+  }
+
+  .settings-window,
+  .main-panel,
+  .subtitle-bar {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* 用户减少动画时，关闭共享动画和过渡，组件局部规则仍可进一步覆盖。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

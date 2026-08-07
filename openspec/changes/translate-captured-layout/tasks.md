@@ -7,7 +7,7 @@
 
 - [ ] 2.1 Add the target-gated macOS Vision OCR adapter and explicit unsupported adapter for other platforms
 - [ ] 2.2 Add the bounded OpenAI-compatible translation client with endpoint, credential, response-size, and exact-ID validation
-- [ ] 2.3 Remove the real-looking default API key and expose in-memory translation configuration to the capture workflow
+- [x] 2.3 Remove the real-looking default API key and expose in-memory translation configuration to the capture workflow
 
 ## 3. Capture translation service
 

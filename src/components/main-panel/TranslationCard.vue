@@ -26,7 +26,7 @@ function copy() {
       </template>
       <template v-else>
         译文
-        <span class="hit" :class="{ model: !hit }">
+        <span v-if="tgtText" class="hit" :class="{ model: !hit }">
           <Icon name="check" />{{ hit ? '字幕库命中' : '模型翻译' }}
         </span>
       </template>
@@ -34,7 +34,9 @@ function copy() {
     <button class="copy" :aria-label="variant === 'source' ? '复制原文' : '复制译文'" @click="copy">
       <Icon name="copy" />
     </button>
-    <p class="txt">{{ variant === 'source' ? srcText : tgtText }}</p>
+    <p class="txt">
+      {{ (variant === 'source' ? srcText : tgtText) || (variant === 'source' ? '暂无识别内容' : '暂无译文') }}
+    </p>
   </div>
 </template>
 

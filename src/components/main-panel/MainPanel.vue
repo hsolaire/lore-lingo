@@ -4,7 +4,6 @@ import SourceRow from './SourceRow.vue'
 import CaptureTarget from './CaptureTarget.vue'
 import TranslateStream from './TranslateStream.vue'
 import Toolbar from './Toolbar.vue'
-import SettingsDrawer from '@/components/settings/SettingsDrawer.vue'
 </script>
 
 <template>
@@ -14,7 +13,6 @@ import SettingsDrawer from '@/components/settings/SettingsDrawer.vue'
     <CaptureTarget />
     <TranslateStream />
     <Toolbar />
-    <SettingsDrawer />
   </main>
 </template>
 

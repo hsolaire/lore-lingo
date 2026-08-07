@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub use super::translation::PublicError;
+
 pub const MAX_CAPTURE_PIXELS: u64 = 32_000_000;
 pub const MAX_CAPTURE_PNG_BYTES: usize = 24 * 1024 * 1024;
 pub const MAX_TRANSLATION_BLOCKS: usize = 200;
@@ -142,14 +144,6 @@ pub struct CaptureTranslationEvent {
     pub state: CaptureTranslationState,
     pub document: Option<LayoutDocument>,
     pub error: Option<PublicError>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct PublicError {
-    pub code: String,
-    pub message: String,
-    pub recoverable: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]

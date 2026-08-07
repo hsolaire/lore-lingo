@@ -1,0 +1,16 @@
+{
+  "$schema": "https://schemas.tauri.app/v2/capabilities.json",
+  "identifier": "main",
+  "description": "LoreLingo 主窗口能力集",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-always-on-top",
+    "core:event:allow-emit",
+    "core:event:allow-listen"
+  ]
+}

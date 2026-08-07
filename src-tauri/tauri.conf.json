@@ -47,6 +47,27 @@
         "visible": false,
         "focus": false,
         "center": true
+      },
+      {
+        "label": "settings",
+        "title": "LoreLingo 设置",
+        "url": "settings.html",
+        "width": 720,
+        "height": 612,
+        "minWidth": 640,
+        "minHeight": 560,
+        "fullscreen": false,
+        "resizable": true,
+        "maximizable": false,
+        "minimizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "visible": false,
+        "focus": false,
+        "center": true
       }
     ],
     "security": {
