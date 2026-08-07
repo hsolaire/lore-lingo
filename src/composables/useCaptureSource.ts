@@ -1,20 +1,14 @@
 import { computed, ref } from 'vue'
-import { invoke } from '@tauri-apps/api/core'
+import { desktopClient } from '@/services/desktopClient'
+import type { CapturePermissionStatus, CaptureSourceSummary } from '@/types/desktop'
 import { useToast } from './useToast'
 
 export type SourceMode = 'app' | 'region'
 
-export interface WindowInfo {
-  id: number
-  title: string
-  exe: string
-  icon_b64: string | null
-}
-
 const sourceMode = ref<SourceMode>('app')
 const selecting = ref(false)
-const windowList = ref<WindowInfo[]>([])
-const selectedWindow = ref<WindowInfo | null>(null)
+const windowList = ref<CaptureSourceSummary[]>([])
+const selectedWindow = ref<CaptureSourceSummary | null>(null)
 const listOpen = ref(false)
 const listLoading = ref(false)
 let selectTimer: ReturnType<typeof setTimeout> | undefined
@@ -31,7 +25,7 @@ export function useCaptureSource() {
 
   const targetMeta = computed(() => {
     if (sourceMode.value === 'app') {
-      return selectedWindow.value?.exe ?? '点击下方选择目标窗口'
+      return selectedWindow.value?.applicationName ?? '点击下方选择目标窗口'
     }
     return '520 × 118 · 屏幕坐标 (700, 46)'
   })
@@ -39,15 +33,41 @@ export function useCaptureSource() {
   async function fetchWindows() {
     listLoading.value = true
     try {
-      windowList.value = await invoke<WindowInfo[]>('list_windows')
+      let permission = await desktopClient.capturePermission()
+      if (permission.status === 'not_determined' && permission.canRequest) {
+        permission = await desktopClient.requestCapturePermission()
+      }
+
+      const allowedStatuses: CapturePermissionStatus[] = ['granted', 'not_required']
+      if (!allowedStatuses.includes(permission.status)) {
+        windowList.value = []
+        selectedWindow.value = null
+        toast('未获得屏幕录制权限，请在系统设置中授权')
+        return
+      }
+
+      const catalog = await desktopClient.sources()
+      const windows = catalog.sources.filter(
+        source => source.kind === 'window' && source.capturable,
+      )
+      windowList.value = windows
+
+      if (
+        selectedWindow.value
+        && !windows.some(source => source.sourceId === selectedWindow.value?.sourceId)
+      ) {
+        selectedWindow.value = null
+      }
     } catch {
       windowList.value = []
+      selectedWindow.value = null
+      toast('加载窗口失败，请稍后重试')
     } finally {
       listLoading.value = false
     }
   }
 
-  function selectWindow(w: WindowInfo) {
+  function selectWindow(w: CaptureSourceSummary) {
     selectedWindow.value = w
     listOpen.value = false
   }

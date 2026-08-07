@@ -1,4 +1,6 @@
 > 2026-08-05 基线复核：本阶段新增的启动 DTO、SQLite 和启动快照不等同于跨平台 DesktopService、来源目录或平台适配器，因此除已有的 8.2 外不新增完成项。
+>
+> 2026-08-07 来源目录阶段：已接入平台中立的 `DesktopService`、目标平台 `PlatformBackend`、权限与来源目录命令，并完成 Windows/macOS 窗口发现代码和前端来源选择迁移。本阶段不包含 WGC/ScreenCaptureKit 捕获会话、真实区域选择或双平台实机验收；`windowCapture` 在捕获会话实现前保持为 `false`。
 
 ## 1. Toolchain and Contract Baseline
 
@@ -10,16 +12,16 @@
 
 - [ ] 2.1 Create the `desktop` module layout and reduce `lib.rs` to application setup, managed state, and command registration
 - [ ] 2.2 Define serializable platform, permission, monitor, capture-source, catalog, session, frame-metadata, and capability models using opaque string IDs
-- [ ] 2.3 Define `DesktopError` codes, recoverability, safe messages, and optional recovery actions, with serialization tests that exclude native details
-- [ ] 2.4 Define the target-selected `PlatformBackend` contract and construct it behind a platform-neutral `DesktopService`
+- [x] 2.3 Define `DesktopError` codes, recoverability, safe messages, and optional recovery actions, with serialization tests that exclude native details
+- [x] 2.4 Define the target-selected `PlatformBackend` contract and construct it behind a platform-neutral `DesktopService`
 - [ ] 2.5 Implement monitor-local logical-to-physical rectangle conversion with table-driven tests for fractional scaling, clamping, and negative monitor origins
 
 ## 3. Discovery Catalog and Commands
 
-- [ ] 3.1 Implement managed source catalogs with monotonic revisions and private mappings from opaque IDs to native source references
-- [ ] 3.2 Implement capability, permission-status, permission-request, and source-discovery Tauri commands against `DesktopService`
-- [ ] 3.3 Reject stale catalog revisions and missing sources with stable errors, including tests for native-handle reuse protection
-- [ ] 3.4 Filter LoreLingo's own main, subtitle, and selector windows from user-selectable discovery results
+- [x] 3.1 Implement managed source catalogs with monotonic revisions and private mappings from opaque IDs to native source references
+- [x] 3.2 Implement capability, permission-status, permission-request, and source-discovery Tauri commands against `DesktopService`
+- [x] 3.3 Reject stale catalog revisions and missing sources with stable errors, including tests for native-handle reuse protection
+- [x] 3.4 Filter LoreLingo's own main, subtitle, and selector windows from user-selectable discovery results
 
 ## 4. Capture Coordinator
 
@@ -42,7 +44,7 @@
 
 - [ ] 6.1 Add target-gated Core Graphics/AppKit and ScreenCaptureKit bindings without introducing macOS dependencies into Windows builds
 - [ ] 6.2 Implement screen-capture permission preflight, explicit request, denied/settings, and restart-required states
-- [ ] 6.3 Implement macOS monitor and on-screen window discovery with best-effort application names/icons and LoreLingo self-filtering
+- [x] 6.3 Implement macOS monitor and on-screen window discovery with best-effort application names/icons and LoreLingo self-filtering
 - [ ] 6.4 Complete a bounded ScreenCaptureKit spike that proves region/window capture, content filtering, cancellation, and Intel/Apple Silicon compilation
 - [ ] 6.5 Implement macOS region and window capture sessions behind `PlatformBackend`, including frame conversion and structured stale/protected-source errors
 - [ ] 6.6 Exclude LoreLingo application windows with ScreenCaptureKit content filters and verify permission revoke/regrant behavior
@@ -50,7 +52,7 @@
 ## 7. Frontend Contract Migration
 
 - [ ] 7.1 Add a typed desktop client and capability composable that is the only frontend module allowed to invoke desktop capability commands
-- [ ] 7.2 Replace `WindowInfo` and Windows `exe` assumptions with shared `CaptureSource` models, permission states, catalog revisions, and actionable errors
+- [x] 7.2 Replace `WindowInfo` and Windows `exe` assumptions with shared `CaptureSource` models, permission states, catalog revisions, and actionable errors
 - [ ] 7.3 Migrate the source picker to refresh the catalog, disable unsupported choices, preserve best-effort metadata, and recover from stale selections
 - [ ] 7.4 Replace simulated region selection with temporary per-monitor selector windows that return monitor-local logical rectangles and clamp drags to one monitor
 - [ ] 7.5 Connect source selection to capture-session start/stop/status and remove simulated success timers and hard-coded region metadata

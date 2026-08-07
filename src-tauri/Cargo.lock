@@ -2114,6 +2114,8 @@ name = "lore-lingo"
 version = "0.0.0"
 dependencies = [
  "base64 0.22.1",
+ "core-foundation 0.9.4",
+ "core-graphics 0.23.2",
  "image",
  "objc2",
  "objc2-foundation",

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RefreshCw } from 'lucide-vue-next'
 import { useCaptureSource } from '@/composables/useCaptureSource'
 
 const {
@@ -13,24 +14,20 @@ const {
   fetchWindows,
 } = useCaptureSource()
 
-function iconSrc(b64: string) {
-  return `data:image/png;base64,${b64}`
-}
-
-function fallbackLetter(exe: string) {
-  return exe.charAt(0).toUpperCase()
+function fallbackLetter(label: string) {
+  return label.charAt(0).toUpperCase()
 }
 </script>
 
 <template>
   <div class="capture-target-wrap">
-    <!-- Selected window card (clickable) -->
+    <!-- 当前选中的窗口 -->
     <div class="target" :class="{ open: listOpen }" @click="toggleList" role="button" tabindex="0" @keydown.enter="toggleList">
-      <div class="thumb" v-if="selectedWindow && selectedWindow.icon_b64">
-        <img :src="iconSrc(selectedWindow.icon_b64)" width="26" height="26" style="border-radius:6px;display:block" />
+      <div class="thumb" v-if="selectedWindow?.iconDataUrl">
+        <img :src="selectedWindow.iconDataUrl" width="26" height="26" style="border-radius:6px;display:block" />
       </div>
       <div class="thumb letter" v-else>
-        {{ selectedWindow ? fallbackLetter(selectedWindow.exe) : '未' }}
+        {{ selectedWindow ? fallbackLetter(selectedWindow.applicationName ?? selectedWindow.title) : '未' }}
       </div>
       <div style="flex:1;min-width:0">
         <b>{{ targetName }}</b>
@@ -39,18 +36,12 @@ function fallbackLetter(exe: string) {
       <div class="chevron" :class="{ up: listOpen }">›</div>
     </div>
 
-    <!-- Dropdown list -->
+    <!-- 窗口来源列表 -->
     <div class="win-list" v-if="listOpen">
       <div class="list-header">
         <span class="list-title">选择窗口</span>
         <button class="refresh-btn" @click.stop="fetchWindows" :disabled="listLoading" title="刷新">
-          <svg v-if="!listLoading" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M23 4v6h-6M1 20v-6h6"/>
-            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-          </svg>
-          <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-          </svg>
+          <RefreshCw :size="12" :stroke-width="2.5" :class="{ spin: listLoading }" />
         </button>
       </div>
 
@@ -60,18 +51,18 @@ function fallbackLetter(exe: string) {
 
       <div
         v-for="w in windowList"
-        :key="w.id"
+        :key="w.sourceId"
         class="win-row"
-        :class="{ selected: selectedWindow?.id === w.id }"
+        :class="{ selected: selectedWindow?.sourceId === w.sourceId }"
         @click="selectWindow(w)"
       >
         <div class="win-icon">
-          <img v-if="w.icon_b64" :src="iconSrc(w.icon_b64)" width="20" height="20" style="display:block" />
-          <span v-else class="fallback-letter">{{ fallbackLetter(w.exe) }}</span>
+          <img v-if="w.iconDataUrl" :src="w.iconDataUrl" width="20" height="20" style="display:block" />
+          <span v-else class="fallback-letter">{{ fallbackLetter(w.applicationName ?? w.title) }}</span>
         </div>
         <div class="win-info">
           <div class="win-title">{{ w.title }}</div>
-          <div class="win-exe">{{ w.exe }}</div>
+          <div class="win-exe">{{ w.applicationName ?? '未知应用' }}</div>
         </div>
       </div>
     </div>
@@ -112,7 +103,7 @@ function fallbackLetter(exe: string) {
 }
 .chevron.up { transform: rotate(-90deg); }
 
-/* Dropdown — floats above content instead of pushing it down */
+/* 下拉列表悬浮在内容上方，避免撑开主面板。 */
 .win-list {
   position: absolute;
   top: calc(100% + 4px); left: 0; right: 0;
