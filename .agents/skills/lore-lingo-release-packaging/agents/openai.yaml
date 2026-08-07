@@ -1,0 +1,4 @@
+interface:
+  display_name: "LoreLingo 发布打包"
+  short_description: "构建、签名、公证并验证 macOS 与 Windows 安装包"
+  default_prompt: "使用 $lore-lingo-release-packaging 准备并验证 LoreLingo 桌面发布产物。"
