@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schemas.tauri.app/v2/capabilities.json",
+  "identifier": "capture-selector",
+  "description": "LoreLingo 临时区域选择器能力集",
+  "windows": ["capture-selector-*"],
+  "permissions": [
+    "core:default"
+  ]
+}

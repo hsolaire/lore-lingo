@@ -2114,11 +2114,15 @@ name = "lore-lingo"
 version = "0.0.0"
 dependencies = [
  "base64 0.22.1",
+ "block2",
  "core-foundation 0.9.4",
  "core-graphics 0.23.2",
  "image",
  "objc2",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
  "objc2-foundation",
+ "objc2-screen-capture-kit",
  "reqwest",
  "rusqlite",
  "screenshots",
@@ -2455,6 +2459,20 @@ dependencies = [
  "bitflags 2.13.0",
  "objc2",
  "objc2-core-foundation",
+ "objc2-foundation",
+]
+
+[[package]]
+name = "objc2-screen-capture-kit"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74b7c5390f477482f001bc354d6571a70db7e4f8d5288e860c45521fbce11394"
+dependencies = [
+ "block2",
+ "libc",
+ "objc2",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
  "objc2-foundation",
 ]
 

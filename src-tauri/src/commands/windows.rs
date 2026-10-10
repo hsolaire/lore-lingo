@@ -19,3 +19,18 @@ pub fn show_or_focus_window(app: AppHandle, label: String) -> Result<(), PublicE
 pub fn hide_window(app: AppHandle, label: String) -> Result<(), PublicError> {
     WindowService::hide(&app, &label)
 }
+
+#[tauri::command]
+pub async fn set_main_window_controls_visible(
+    window: tauri::WebviewWindow,
+    visible: bool,
+) -> Result<(), PublicError> {
+    if window.label() != "main" {
+        return Err(PublicError::invalid_window_label());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::desktop::set_window_controls_visible(window, visible)
+    })
+    .await
+    .map_err(|_| PublicError::window_unavailable())?
+}

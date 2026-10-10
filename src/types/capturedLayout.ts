@@ -15,6 +15,22 @@ export interface LogicalRect {
   height: number
 }
 
+export interface RegionBounds { x1: number; x2: number; y1: number; y2: number }
+export interface CapturedRegion {
+  revision: number
+  monitorId: string
+  logicalWidth: number
+  logicalHeight: number
+  bounds: RegionBounds
+}
+export interface RegionPreview {
+  revision: number
+  imagePngB64: string
+  imageWidth: number
+  imageHeight: number
+  capturedAtMs: number
+}
+
 export interface NormalizedRect extends LogicalRect {}
 
 export interface LayoutBlock {
@@ -65,3 +81,12 @@ export interface SelectorPayload {
   logicalWidth: number
   logicalHeight: number
 }
+
+export type CaptureTranslationViewState =
+  | { status: 'idle'; sessionId: null; document: null; error: null }
+  | { status: 'selecting'; sessionId: string; document: null; error: null }
+  | { status: 'processing'; sessionId: string; document: LayoutDocument | null; error: null }
+  | { status: 'empty'; sessionId: string; document: LayoutDocument; error: null }
+  | { status: 'success'; sessionId: string; document: LayoutDocument; error: null }
+  | { status: 'error'; sessionId: string | null; document: LayoutDocument | null; error: PublicError }
+  | { status: 'cancelled'; sessionId: string; document: null; error: null }

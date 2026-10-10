@@ -1,4 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { LogicalSize } from '@tauri-apps/api/dpi'
 
 import type { WindowSummary } from '@/types/desktop'
 import { invokeCommand } from './tauriClient'
@@ -23,6 +24,9 @@ export const windowClient = {
   hide(label: string): Promise<void> {
     return invokeCommand<void>('hide_window', { label })
   },
+  setMainControlsVisible(visible: boolean): Promise<void> {
+    return invokeCommand<void>('set_main_window_controls_visible', { visible })
+  },
 }
 
 export const currentWindowClient = {
@@ -43,5 +47,8 @@ export const currentWindowClient = {
   },
   startDragging(): Promise<void> {
     return runWithCurrentWindow((window) => window.startDragging())
+  },
+  setSize(width: number, height: number): Promise<void> {
+    return runWithCurrentWindow((window) => window.setSize(new LogicalSize(width, height)))
   },
 }

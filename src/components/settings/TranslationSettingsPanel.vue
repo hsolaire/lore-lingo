@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type DeepReadonly } from 'vue'
+import { computed, ref, type DeepReadonly } from 'vue'
 import {
   NAlert,
   NInputNumber,
@@ -10,12 +10,15 @@ import {
   NTag,
 } from 'naive-ui'
 
+import CaptureServiceSettings from './CaptureServiceSettings.vue'
+
 import type { ModelProfileSummary, TranslationSettingsSummary } from '@/types/settings'
 
 const props = defineProps<{
   settings: DeepReadonly<TranslationSettingsSummary> | null
   defaultModel: DeepReadonly<ModelProfileSummary> | null
 }>()
+const serviceConfigured = ref(false)
 
 const languageNames: Record<string, string> = {
   auto: '自动检测',
@@ -53,12 +56,14 @@ const languageOptions = computed(() => [
     <div class="section-heading">
       <div>
         <h2 id="translation-heading">翻译</h2>
-        <p>查看当前翻译方式、语言和模型配置。</p>
+        <p>配置区域和窗口捕获共用的翻译服务与模型。</p>
       </div>
-      <NTag size="small" :type="defaultModel ? 'success' : 'warning'" round>
-        {{ defaultModel ? '已配置模型' : '未配置模型' }}
+      <NTag size="small" :type="serviceConfigured ? 'success' : 'warning'" round>
+        {{ serviceConfigured ? '服务已配置' : '服务待配置' }}
       </NTag>
     </div>
+
+    <CaptureServiceSettings @configured="serviceConfigured = $event" />
 
     <div class="field-group">
       <span class="field-label">翻译方式</span>
@@ -99,25 +104,13 @@ const languageOptions = computed(() => [
       </label>
     </div>
 
-    <div class="model-card">
-      <div>
-        <span class="field-label">默认翻译模型</span>
-        <b>{{ defaultModel?.name ?? '尚未配置翻译模型' }}</b>
-        <small v-if="defaultModel">{{ defaultModel.provider }} · {{ defaultModel.modelName }}</small>
-        <small v-else>配置模型与系统凭据后才能发起真实翻译。</small>
-      </div>
-      <NTag size="small" :type="defaultModel?.hasSecret ? 'success' : 'default'">
-        {{ defaultModel?.hasSecret ? '凭据已配置' : '无可用凭据' }}
-      </NTag>
-    </div>
-
     <div class="switch-list">
       <label><NSwitch :value="settings?.preferSubtitles ?? false" disabled />优先匹配字幕库</label>
       <label><NSwitch :value="settings?.saveHistory ?? false" disabled />保存翻译历史</label>
     </div>
 
     <NAlert type="info" :show-icon="true" :bordered="false">
-      当前版本从本地数据库读取设置；编辑、凭据保存和连接测试尚未接入，因此不会显示模拟连接成功。
+      上方服务配置用于当前的单次区域和窗口翻译；自动翻译、历史保存和系统凭据持久化尚未接入。
     </NAlert>
   </section>
 </template>
@@ -133,11 +126,8 @@ const languageOptions = computed(() => [
 .choice-card { display: flex; gap: 9px; min-height: 72px; padding: 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-muted); }
 .choice-card span { display: flex; flex-direction: column; gap: 5px; }
 .choice-card b { font-size: 12px; }
-.choice-card small, .model-card small { color: var(--faint); font-size: 10px; line-height: 1.45; }
+.choice-card small { color: var(--faint); font-size: 10px; line-height: 1.45; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 12px; }
-.model-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-muted); }
-.model-card > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.model-card b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .switch-list { display: flex; flex-wrap: wrap; gap: 14px 20px; }
 .switch-list label { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
 @media (max-width: 440px) { .choice-grid, .form-grid { grid-template-columns: 1fr; } }

@@ -95,6 +95,23 @@ fn refresh_invalidates_sources_from_the_previous_revision() {
         .validate_source(first.catalog_revision, &first.sources[0].source_id)
         .expect_err("a source from the replaced catalog must be stale");
     assert_eq!(error.code, DesktopErrorCode::SourceStale);
+    assert_eq!(
+        service
+            .resolve_source(first.catalog_revision, &first.sources[0].source_id)
+            .expect_err("旧窗口不能解析成复用的原生编号")
+            .code,
+        DesktopErrorCode::SourceStale
+    );
+    service
+        .resolve_source(second.catalog_revision, &second.sources[0].source_id)
+        .expect("当前目录来源可供窗口捕获使用");
+    assert_eq!(
+        service
+            .resolve_source(second.catalog_revision, "unknown")
+            .expect_err("未知来源必须显式失败")
+            .code,
+        DesktopErrorCode::SourceNotFound
+    );
     service
         .validate_source(second.catalog_revision, &second.sources[0].source_id)
         .expect("a source from the active catalog should resolve");

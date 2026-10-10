@@ -3,6 +3,9 @@ import { useTranslator } from '@/composables/useTranslator'
 import { useWindowNavigation } from '@/composables/useWindowNavigation'
 import { currentWindowClient } from '@/services/windowClient'
 import Icon from '@/components/ui/Icon.vue'
+import type { PlatformKind } from '@/types/desktop'
+
+withDefaults(defineProps<{ platform?: PlatformKind }>(), { platform: 'unsupported' })
 
 const { openSettings, openSubtitle } = useWindowNavigation('main')
 const { pinned, togglePin } = useTranslator()
@@ -19,8 +22,8 @@ function startDragging(event: MouseEvent) {
 </script>
 
 <template>
-  <header class="titlebar" @mousedown="startDragging">
-    <div class="traffic" data-window-control>
+  <header class="titlebar" :class="{ 'native-controls': platform === 'macos' }" @mousedown="startDragging">
+    <div v-if="platform !== 'macos'" class="traffic" data-window-control>
       <button type="button" class="traffic-control close" title="关闭" aria-label="关闭窗口" @click="closeWin">
         <span class="traffic-dot"><Icon name="x" /></span>
       </button>
@@ -77,6 +80,8 @@ function startDragging(event: MouseEvent) {
   user-select: none;
 }
 .traffic { display: flex; align-items: center; margin-left: -6px; }
+/* 原生交通灯位于 WebView 上方，标题栏预留左侧空间避免遮挡。 */
+.titlebar.native-controls { padding-left: 88px; }
 .traffic-control {
   width: 23px; height: 30px; border: 0; padding: 0;
   display: grid; place-items: center;

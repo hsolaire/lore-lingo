@@ -19,6 +19,64 @@ pub struct LogicalRect {
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
+pub struct RegionBounds {
+    pub x1: f64,
+    pub x2: f64,
+    pub y1: f64,
+    pub y2: f64,
+}
+
+impl RegionBounds {
+    pub fn rect(&self, width: f64, height: f64) -> Option<LogicalRect> {
+        let values = [self.x1, self.x2, self.y1, self.y2, width, height];
+        if values.iter().any(|value| !value.is_finite())
+            || self.x1 < 0.0
+            || self.y1 < 0.0
+            || self.x2 > width
+            || self.y2 > height
+            || self.x2 - self.x1 < 4.0
+            || self.y2 - self.y1 < 4.0
+        {
+            return None;
+        }
+        Some(LogicalRect {
+            x: self.x1,
+            y: self.y1,
+            width: self.x2 - self.x1,
+            height: self.y2 - self.y1,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CapturedRegion {
+    pub revision: u64,
+    pub monitor_id: String,
+    pub logical_width: f64,
+    pub logical_height: f64,
+    pub bounds: RegionBounds,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCapturedRegionRequest {
+    pub revision: u64,
+    pub bounds: RegionBounds,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegionPreview {
+    pub revision: u64,
+    pub image_png_b64: String,
+    pub image_width: u32,
+    pub image_height: u32,
+    pub captured_at_ms: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct NormalizedRect {
     pub x: f64,
     pub y: f64,
@@ -114,6 +172,14 @@ pub struct CompleteCaptureTranslationRequest {
 #[serde(rename_all = "camelCase")]
 pub struct CancelCaptureTranslationRequest {
     pub session_id: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaptureWindowTranslationRequest {
+    pub source_id: String,
+    pub catalog_revision: u64,
+    pub translation: TranslationConfig,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]

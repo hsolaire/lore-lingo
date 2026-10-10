@@ -79,6 +79,25 @@ impl DesktopService {
         })
     }
 
+    pub fn resolve_source(
+        &self,
+        catalog_revision: u64,
+        source_id: &str,
+    ) -> Result<NativeCaptureSource, DesktopError> {
+        let catalog = self
+            .catalog
+            .lock()
+            .map_err(|_| DesktopError::backend_failure())?;
+        if catalog.revision != catalog_revision {
+            return Err(DesktopError::source_stale());
+        }
+        catalog
+            .native_sources
+            .get(source_id)
+            .cloned()
+            .ok_or_else(DesktopError::source_not_found)
+    }
+
     pub fn validate_source(
         &self,
         catalog_revision: u64,

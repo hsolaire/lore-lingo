@@ -11,10 +11,14 @@ pub mod services;
 
 use commands::app::get_bootstrap_snapshot;
 use commands::capture_translation::{
-    cancel_capture_translation, capture_selector_payload, complete_capture_translation,
-    start_capture_translation,
+    cancel_capture_translation, capture_selector_payload, capture_window_translation,
+    captured_region_preview, complete_capture_translation, get_capture_translation_config,
+    get_captured_region, save_capture_translation_config, start_capture_translation,
+    translate_captured_region, update_captured_region,
 };
-use commands::windows::{hide_window, list_app_windows, show_or_focus_window};
+use commands::windows::{
+    hide_window, list_app_windows, set_main_window_controls_visible, show_or_focus_window,
+};
 use desktop::{
     capture_permission_status, create_platform_backend, get_desktop_capabilities,
     list_capture_sources, request_capture_permission, DesktopService,
@@ -70,10 +74,35 @@ fn list_screens() -> Vec<serde_json::Value> {
         .collect()
 }
 
+/// 仅为 macOS 主窗口启用原生交通灯，保留其他窗口的无边框配置。
+#[cfg(target_os = "macos")]
+fn configure_main_window(config: &mut tauri::Config) {
+    if let Some(main) = config
+        .app
+        .windows
+        .iter_mut()
+        .find(|window| window.label == "main")
+    {
+        main.decorations = true;
+        main.title_bar_style = tauri::TitleBarStyle::Overlay;
+        main.hidden_title = true;
+        main.traffic_light_position =
+            Some(tauri::utils::config::LogicalPosition { x: 14.0, y: 24.0 });
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let capture_translation =
         CaptureTranslationService::new().expect("failed to initialize capture translation service");
+
+    let context = tauri::generate_context!();
+    #[cfg(target_os = "macos")]
+    let context = {
+        let mut context = context;
+        configure_main_window(context.config_mut());
+        context
+    };
 
     tauri::Builder::default()
         .manage(Arc::new(capture_translation))
@@ -102,13 +131,57 @@ pub fn run() {
             capture_region,
             list_screens,
             start_capture_translation,
+            capture_window_translation,
+            get_capture_translation_config,
+            save_capture_translation_config,
             capture_selector_payload,
+            get_captured_region,
+            update_captured_region,
+            captured_region_preview,
+            translate_captured_region,
             complete_capture_translation,
             cancel_capture_translation,
             list_app_windows,
             show_or_focus_window,
             hide_window,
+            set_main_window_controls_visible,
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod window_presentation_tests {
+    use super::configure_main_window;
+
+    #[test]
+    fn native_controls_only_apply_to_main_window() {
+        let mut config: tauri::Config =
+            serde_json::from_str(include_str!("../tauri.conf.json")).expect("读取窗口配置");
+        let original = config.app.windows.clone();
+
+        configure_main_window(&mut config);
+
+        let main = config
+            .app
+            .windows
+            .iter()
+            .find(|window| window.label == "main")
+            .expect("主窗口存在");
+        assert!(main.decorations);
+        assert!(main.hidden_title);
+        assert!(matches!(
+            main.title_bar_style,
+            tauri::TitleBarStyle::Overlay
+        ));
+        assert!(main.traffic_light_position.is_some());
+        for (before, after) in original.iter().zip(&config.app.windows) {
+            if before.label != "main" {
+                assert_eq!(
+                    serde_json::to_value(before).expect("序列化原配置"),
+                    serde_json::to_value(after).expect("序列化当前配置")
+                );
+            }
+        }
+    }
 }

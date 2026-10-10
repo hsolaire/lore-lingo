@@ -33,6 +33,7 @@ pub enum CaptureTranslationError {
     InvalidRegion,
     StaleTask,
     CaptureFailure,
+    PermissionDenied,
     OcrFailure,
     TranslationNotConfigured,
     TranslationUnavailable,
@@ -41,17 +42,29 @@ pub enum CaptureTranslationError {
 }
 
 pub struct CaptureTranslationService {
+    pub region: super::region_capture::RegionCaptureService,
     next_session: AtomicU64,
     active: Mutex<Option<ActiveTask>>,
     translator: TranslationClient,
+    config: Mutex<TranslationConfig>,
+    current_session: Mutex<Option<String>>,
 }
 
 impl CaptureTranslationService {
     pub fn new() -> Result<Self, CaptureTranslationError> {
         Ok(Self {
+            region: super::region_capture::RegionCaptureService::default(),
             next_session: AtomicU64::new(1),
             active: Mutex::new(None),
             translator: TranslationClient::new()?,
+            config: Mutex::new(TranslationConfig {
+                endpoint: String::new(),
+                model: String::new(),
+                api_key: String::new(),
+                source_language: "auto".into(),
+                target_language: "zh-CN".into(),
+            }),
+            current_session: Mutex::new(None),
         })
     }
 
@@ -59,6 +72,8 @@ impl CaptureTranslationService {
         &self,
         translation: TranslationConfig,
     ) -> Result<StartedTask, CaptureTranslationError> {
+        self.clear_active()?;
+
         #[cfg(not(target_os = "macos"))]
         {
             let _ = translation;
@@ -79,9 +94,19 @@ impl CaptureTranslationService {
                 .enumerate()
             {
                 let info = screen.display_info;
-                let image = screen
-                    .capture()
-                    .map_err(|_| CaptureTranslationError::CaptureFailure)?;
+                let image =
+                    crate::desktop::capture_display_image(info.id).map_err(|error| match error
+                        .to_public()
+                        .code
+                    {
+                        crate::desktop::DesktopErrorCode::PermissionDenied => {
+                            CaptureTranslationError::PermissionDenied
+                        }
+                        crate::desktop::DesktopErrorCode::UnsupportedCapability => {
+                            CaptureTranslationError::UnsupportedCapability
+                        }
+                        _ => CaptureTranslationError::CaptureFailure,
+                    })?;
                 let pixel_count = u64::from(image.width()) * u64::from(image.height());
                 if pixel_count == 0 || pixel_count > MAX_CAPTURE_PIXELS {
                     return Err(CaptureTranslationError::CaptureFailure);
@@ -127,6 +152,10 @@ impl CaptureTranslationService {
                 translation,
                 monitors,
             });
+            *self
+                .current_session
+                .lock()
+                .map_err(|_| CaptureTranslationError::BackendFailure)? = Some(session_id.clone());
             Ok(StartedTask {
                 session_id,
                 windows,
@@ -157,29 +186,116 @@ impl CaptureTranslationService {
         })
     }
 
-    pub fn cancel(&self, session_id: &str) -> Result<(), CaptureTranslationError> {
-        let mut active = self
-            .active
+    pub fn config(&self) -> Result<TranslationConfig, CaptureTranslationError> {
+        self.config
+            .lock()
+            .map(|config| config.clone())
+            .map_err(|_| CaptureTranslationError::BackendFailure)
+    }
+
+    pub fn save_config(
+        &self,
+        config: TranslationConfig,
+    ) -> Result<TranslationConfig, CaptureTranslationError> {
+        if config.endpoint.len() > 2048
+            || config.model.len() > 256
+            || config.api_key.len() > 16384
+            || config.source_language.len() > 128
+            || config.target_language.len() > 128
+            || !(config.endpoint.starts_with("https://") || config.endpoint.starts_with("http://"))
+            || config.model.trim().is_empty()
+        {
+            return Err(CaptureTranslationError::TranslationNotConfigured);
+        }
+        *self
+            .config
+            .lock()
+            .map_err(|_| CaptureTranslationError::BackendFailure)? = config.clone();
+        Ok(config)
+    }
+
+    pub fn begin_window(&self) -> Result<String, CaptureTranslationError> {
+        self.clear_active()?;
+        let session = format!(
+            "capture-{}",
+            self.next_session.fetch_add(1, Ordering::Relaxed)
+        );
+        *self
+            .current_session
+            .lock()
+            .map_err(|_| CaptureTranslationError::BackendFailure)? = Some(session.clone());
+        Ok(session)
+    }
+
+    pub fn check_session(&self, session: &str) -> Result<(), CaptureTranslationError> {
+        let current = self
+            .current_session
             .lock()
             .map_err(|_| CaptureTranslationError::BackendFailure)?;
-        let task = active.as_ref().ok_or(CaptureTranslationError::StaleTask)?;
-        if task.session_id != session_id {
+        if current.as_deref() != Some(session) {
             return Err(CaptureTranslationError::StaleTask);
         }
-        *active = None;
         Ok(())
+    }
+
+    pub fn cancel(&self, session_id: &str) -> Result<(), CaptureTranslationError> {
+        self.check_session(session_id)?;
+        self.clear_active()
+    }
+
+    pub fn clear_active(&self) -> Result<(), CaptureTranslationError> {
+        *self
+            .active
+            .lock()
+            .map_err(|_| CaptureTranslationError::BackendFailure)? = None;
+        *self
+            .current_session
+            .lock()
+            .map_err(|_| CaptureTranslationError::BackendFailure)? = None;
+        Ok(())
+    }
+
+    pub fn prepare(
+        &self,
+        request: &CompleteCaptureTranslationRequest,
+    ) -> Result<SelectedCapture, CaptureTranslationError> {
+        self.check_session(&request.session_id)?;
+        self.take_selected_capture(request)
+    }
+
+    pub fn prepare_window(
+        &self,
+        image: RgbaImage,
+        translation: TranslationConfig,
+    ) -> Result<SelectedCapture, CaptureTranslationError> {
+        let pixels = u64::from(image.width()) * u64::from(image.height());
+        if pixels == 0 || pixels > MAX_CAPTURE_PIXELS {
+            return Err(CaptureTranslationError::CaptureFailure);
+        }
+        let png = encode_png(&image)?;
+        if png.len() > MAX_CAPTURE_PNG_BYTES {
+            return Err(CaptureTranslationError::CaptureFailure);
+        }
+        Ok(SelectedCapture {
+            width: image.width(),
+            height: image.height(),
+            png,
+            translation,
+        })
     }
 
     pub async fn complete(
         &self,
-        request: CompleteCaptureTranslationRequest,
+        session: &str,
+        selected: SelectedCapture,
     ) -> Result<LayoutDocument, CaptureTranslationError> {
-        let selected = self.take_selected_capture(&request)?;
+        self.check_session(session)?;
         let ocr_png = selected.png.clone();
         let observations =
             tauri::async_runtime::spawn_blocking(move || ocr::recognize_text(&ocr_png))
                 .await
                 .map_err(|_| CaptureTranslationError::OcrFailure)??;
+        self.check_session(session)?;
         let mut blocks = build_layout_blocks(observations);
 
         if !blocks.is_empty() {
@@ -192,6 +308,7 @@ impl CaptureTranslationService {
             }
         }
 
+        self.check_session(session)?;
         Ok(LayoutDocument {
             image_width: selected.width,
             image_height: selected.height,
@@ -233,6 +350,17 @@ impl CaptureTranslationService {
         if png.len() > MAX_CAPTURE_PNG_BYTES {
             return Err(CaptureTranslationError::CaptureFailure);
         }
+        self.region.remember(
+            monitor.monitor_id.clone(),
+            f64::from(monitor.image.width()) / monitor.scale_factor,
+            f64::from(monitor.image.height()) / monitor.scale_factor,
+            crate::domain::captured_layout::RegionBounds {
+                x1: request.rect.x,
+                x2: request.rect.x + request.rect.width,
+                y1: request.rect.y,
+                y2: request.rect.y + request.rect.height,
+            },
+        )?;
         Ok(SelectedCapture {
             width: image.width(),
             height: image.height(),
@@ -242,7 +370,7 @@ impl CaptureTranslationService {
     }
 }
 
-fn encode_png(image: &RgbaImage) -> Result<Vec<u8>, CaptureTranslationError> {
+pub(super) fn encode_png(image: &RgbaImage) -> Result<Vec<u8>, CaptureTranslationError> {
     let mut cursor = Cursor::new(Vec::new());
     DynamicImage::ImageRgba8(image.clone())
         .write_to(&mut cursor, ImageFormat::Png)
@@ -264,11 +392,24 @@ struct CapturedMonitor {
     png_b64: String,
 }
 
-struct SelectedCapture {
+pub struct SelectedCapture {
     width: u32,
     height: u32,
     png: Vec<u8>,
     translation: TranslationConfig,
+}
+
+impl SelectedCapture {
+    pub fn preview(&self) -> LayoutDocument {
+        LayoutDocument {
+            image_width: self.width,
+            image_height: self.height,
+            image_png_b64: general_purpose::STANDARD.encode(&self.png),
+            source_language: self.translation.source_language.clone(),
+            target_language: self.translation.target_language.clone(),
+            blocks: vec![],
+        }
+    }
 }
 
 pub struct StartedTask {
@@ -298,6 +439,11 @@ impl From<CaptureTranslationError> for PublicError {
             CaptureTranslationError::StaleTask => {
                 ("stale_task", "截图任务已失效，请重新开始。", true)
             }
+            CaptureTranslationError::PermissionDenied => (
+                "permission_denied",
+                "请在系统设置中为 LoreLingo 开启屏幕录制权限，重新启动后再捕获。",
+                true,
+            ),
             CaptureTranslationError::CaptureFailure => {
                 ("capture_failure", "无法读取截图内容。", true)
             }
@@ -327,5 +473,95 @@ impl From<CaptureTranslationError> for PublicError {
             recoverable,
             action: recoverable.then(|| "retry".into()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn translation_config() -> TranslationConfig {
+        TranslationConfig {
+            endpoint: "http://127.0.0.1:11434/v1".into(),
+            model: "test-model".into(),
+            api_key: String::new(),
+            source_language: "en".into(),
+            target_language: "zh-CN".into(),
+        }
+    }
+
+    fn insert_active_task(service: &CaptureTranslationService, session_id: &str) {
+        *service.current_session.lock().expect("写入测试会话") = Some(session_id.into());
+        let mut active = service.active.lock().expect("锁定测试任务");
+        *active = Some(ActiveTask {
+            session_id: session_id.into(),
+            translation: translation_config(),
+            monitors: HashMap::new(),
+        });
+    }
+
+    #[test]
+    fn cancellation_rejects_stale_sessions_and_releases_the_active_task() {
+        let service = CaptureTranslationService::new().expect("创建截图翻译服务");
+        insert_active_task(&service, "capture-current");
+
+        assert_eq!(
+            service.cancel("capture-stale"),
+            Err(CaptureTranslationError::StaleTask)
+        );
+        assert!(service.active.lock().expect("读取测试任务").is_some());
+
+        service.cancel("capture-current").expect("取消当前任务");
+        assert!(service.active.lock().expect("读取测试任务").is_none());
+    }
+
+    #[test]
+    fn runtime_configuration_is_shared_and_rejects_invalid_input() {
+        let service = CaptureTranslationService::new().expect("创建服务");
+        let config = translation_config();
+        service.save_config(config.clone()).expect("应用配置");
+        assert_eq!(service.config().expect("读取配置").model, config.model);
+        let mut invalid = config;
+        invalid.endpoint = "file:///invalid".into();
+        assert!(service.save_config(invalid).is_err());
+        assert_eq!(
+            service.config().expect("保留原配置").endpoint,
+            "http://127.0.0.1:11434/v1"
+        );
+    }
+
+    #[test]
+    fn selected_capture_preview_survives_independently_of_ocr() {
+        let service = CaptureTranslationService::new().expect("创建服务");
+        let image = RgbaImage::new(20, 10);
+        let selected = service
+            .prepare_window(image, translation_config())
+            .expect("准备截图");
+        let preview = selected.preview();
+        assert_eq!((preview.image_width, preview.image_height), (20, 10));
+        assert!(!preview.image_png_b64.is_empty());
+        assert!(preview.blocks.is_empty());
+    }
+
+    #[test]
+    fn processing_cancellation_invalidates_future_results() {
+        let service = CaptureTranslationService::new().expect("创建服务");
+        let session = service.begin_window().expect("开始窗口捕获");
+        service.check_session(&session).expect("任务有效");
+        service.cancel(&session).expect("取消处理中任务");
+        assert_eq!(
+            service.check_session(&session),
+            Err(CaptureTranslationError::StaleTask)
+        );
+    }
+
+    #[test]
+    fn clearing_active_task_is_idempotent() {
+        let service = CaptureTranslationService::new().expect("创建截图翻译服务");
+        insert_active_task(&service, "capture-current");
+
+        service.clear_active().expect("清理当前任务");
+        service.clear_active().expect("重复清理当前任务");
+        assert!(service.active.lock().expect("读取测试任务").is_none());
     }
 }

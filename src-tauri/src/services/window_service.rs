@@ -5,17 +5,15 @@ use crate::domain::{app::WindowSummary, translation::PublicError};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppWindowLabel {
     Main,
-    Subtitle,
     Settings,
 }
 
 impl AppWindowLabel {
-    const ALL: [Self; 3] = [Self::Main, Self::Subtitle, Self::Settings];
+    const ALL: [Self; 2] = [Self::Main, Self::Settings];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Main => "main",
-            Self::Subtitle => "subtitle",
             Self::Settings => "settings",
         }
     }
@@ -27,7 +25,8 @@ impl TryFrom<&str> for AppWindowLabel {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "main" => Ok(Self::Main),
-            "subtitle" => Ok(Self::Subtitle),
+            // 旧调用兼容到同一个悬浮主窗口，不再创建或寻找第二个字幕窗口。
+            "subtitle" => Ok(Self::Main),
             "settings" => Ok(Self::Settings),
             _ => Err(PublicError::invalid_window_label()),
         }
@@ -88,7 +87,7 @@ mod tests {
         assert_eq!(AppWindowLabel::try_from("main"), Ok(AppWindowLabel::Main));
         assert_eq!(
             AppWindowLabel::try_from("subtitle"),
-            Ok(AppWindowLabel::Subtitle)
+            Ok(AppWindowLabel::Main)
         );
         assert_eq!(
             AppWindowLabel::try_from("settings"),

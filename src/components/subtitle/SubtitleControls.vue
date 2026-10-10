@@ -1,94 +1,83 @@
 <script setup lang="ts">
-import { emit } from '@tauri-apps/api/event'
-import { useTranslator } from '@/composables/useTranslator'
-import { useWindowNavigation } from '@/composables/useWindowNavigation'
-import Icon from '@/components/ui/Icon.vue'
+import { ArrowUpToLine, Check, ChevronDown, Crop, Languages, LockKeyhole, Monitor, Pause, Settings, UnlockKeyhole, Minus, X } from 'lucide-vue-next'
+import { NButton, NIcon } from 'naive-ui'
+import type { PlatformKind } from '@/types/desktop'
+import { currentWindowClient } from '@/services/windowClient'
 
-defineProps<{ pinned: boolean }>()
+withDefaults(defineProps<{
+  platform?: PlatformKind
+  toolbarPinned?: boolean
+  alwaysOnTop?: boolean
+  sourceLabel?: string
+  languageLabel?: string
+  busy?: boolean
+  captured?: boolean
+  optionsOpen?: boolean
+  windowsOpen?: boolean
+}>(), {
+  platform: 'unsupported', toolbarPinned: false, alwaysOnTop: true,
+  sourceLabel: '选择捕获窗口', languageLabel: 'auto → zh-CN',
+  busy: false, captured: false, optionsOpen: false, windowsOpen: false,
+})
 
-const emitVue = defineEmits<{
-  flip: []
-  'toggle-pinned': []
+const emit = defineEmits<{
+  options: []; source: []; translate: []; settings: []
+  preview: [show: boolean]
+  'toggle-toolbar-pinned': []; 'toggle-always-on-top': []
 }>()
 
-const { sessionActive } = useTranslator()
-const { openMain, hideCurrent } = useWindowNavigation('subtitle')
-
-// 重新选择必须由主页执行，因为选择状态和页面样式只存在于主页窗口。
-async function requestReselect() {
-  try { await emit('capture:reselect', {}) } catch (_) {}
-}
-
-async function returnToMain() {
-  await openMain()
-  await hideCurrent()
+function drag(event: MouseEvent) {
+  if (event.button !== 0 || (event.target instanceof Element && event.target.closest('button'))) return
+  void currentWindowClient.startDragging().catch(() => {})
 }
 </script>
 
 <template>
-  <div class="subtitle-controls">
-    <span class="cnow">
-      <span v-if="sessionActive" class="dot"></span>{{ sessionActive ? '翻译中' : '待机' }}
-    </span>
-    <button class="cbtn" title="重选捕获" aria-label="重选捕获" @click="requestReselect">
-      <Icon name="crop" />
-    </button>
-    <button class="cbtn" title="切换翻译方向" aria-label="切换翻译方向" @click="emitVue('flip')">
-      <Icon name="swap" />
-    </button>
-    <button
-      class="cbtn"
-      :class="{ active: pinned }"
-      title="悬浮字幕置顶"
-      aria-label="悬浮字幕置顶"
-      @click="emitVue('toggle-pinned')"
-    >
-      <Icon name="pin" />
-    </button>
-    <span class="cdiv"></span>
-    <button class="cbtn" title="回到面板" aria-label="回到面板视图" @click="returnToMain">
-      <Icon name="layout" />
-    </button>
-    <button class="cbtn danger" title="关闭悬浮字幕" aria-label="关闭悬浮字幕" @click="hideCurrent">
-      <Icon name="x" />
-    </button>
-  </div>
+  <header class="subtitle-controls" role="toolbar" aria-label="悬浮字幕工具栏" @mousedown="drag">
+    <span v-if="platform === 'macos'" class="native-space" aria-hidden="true" />
+    <div class="action-group" role="group" aria-label="翻译操作">
+      <NButton size="small" quaternary aria-label="翻译选项" aria-haspopup="dialog" :aria-expanded="optionsOpen" :title="`翻译选项：${languageLabel}`" @click="emit('options')">
+        <template #icon><NIcon :component="Languages" /></template>
+        <span class="label">翻译</span><ChevronDown :size="12" />
+      </NButton>
+      <NButton size="small" quaternary :disabled="busy" aria-label="捕获窗口" aria-haspopup="dialog" :aria-expanded="windowsOpen" :title="sourceLabel" @click="emit('source')">
+        <template #icon><NIcon :component="Monitor" /></template>
+        <span class="label">窗口</span><ChevronDown :size="12" />
+      </NButton>
+      <NButton size="small" :type="captured ? 'success' : 'primary'" :aria-label="busy ? '取消捕获' : captured ? '编辑捕获区域' : '捕获区域'" :title="busy ? '取消当前任务' : captured ? '已捕获，悬停实时预览，点击编辑坐标' : '框选要翻译的区域'" @click="emit('translate')" @mouseenter="emit('preview', true)" @mouseleave="emit('preview', false)" @focus="emit('preview', true)" @blur="emit('preview', false)">
+        <template #icon><NIcon :component="busy ? Pause : captured ? Check : Crop" /></template>
+        <span class="label">{{ busy ? '取消' : captured ? '已捕获' : '区域' }}</span>
+      </NButton>
+      <NButton quaternary circle size="small" aria-label="设置" title="设置" @click="emit('settings')">
+        <template #icon><NIcon :component="Settings" /></template>
+      </NButton>
+    </div>
+    <div class="window-group" role="group" aria-label="窗口操作">
+      <NButton quaternary circle size="small" :class="{ active: alwaysOnTop }" aria-label="窗口置顶" :aria-pressed="alwaysOnTop" title="窗口置顶" @click="emit('toggle-always-on-top')">
+        <template #icon><NIcon :component="ArrowUpToLine" /></template>
+      </NButton>
+      <NButton quaternary circle size="small" :class="{ active: toolbarPinned }" aria-label="固定工具栏" :aria-pressed="toolbarPinned" :title="toolbarPinned ? '取消固定工具栏' : '固定工具栏'" @click="emit('toggle-toolbar-pinned')">
+        <template #icon><NIcon :component="toolbarPinned ? LockKeyhole : UnlockKeyhole" /></template>
+      </NButton>
+      <template v-if="platform !== 'macos'">
+        <NButton quaternary circle size="small" aria-label="最小化窗口" title="最小化窗口" @click="currentWindowClient.minimize()"><template #icon><NIcon :component="Minus" /></template></NButton>
+        <NButton quaternary circle size="small" aria-label="关闭窗口" title="关闭窗口" @click="currentWindowClient.close()"><template #icon><NIcon :component="X" /></template></NButton>
+      </template>
+    </div>
+  </header>
 </template>
 
 <style scoped>
-.subtitle-controls {
-  -webkit-app-region: no-drag;
-  position: absolute;
-  z-index: 2;
-  top: 10px;
-  left: 50%;
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px;
-  background: var(--glass-strong);
-  backdrop-filter: blur(30px) saturate(1.6);
-  -webkit-backdrop-filter: blur(30px) saturate(1.6);
-  border: 1px solid var(--border-hi);
-  border-radius: 999px;
-  box-shadow: 0 12px 30px oklch(12% 0.02 260 / 0.5);
-  opacity: 0; transform: translate(-50%, 6px);
-  transition: opacity .22s ease, transform .22s ease;
-  pointer-events: none;
-}
-.cbtn {
-  -webkit-app-region: no-drag;
-  width: 32px; height: 32px; border-radius: 999px;
-  border: 1px solid transparent; background: transparent; color: var(--muted);
-  display: grid; place-items: center; cursor: pointer; transition: .15s;
-}
-.cbtn:hover { background: var(--glass-hi); color: var(--fg); }
-.cbtn.active { color: var(--accent); background: var(--accent-dim); }
-.cbtn.danger:hover { color: oklch(66% 0.17 25); background: oklch(66% 0.17 25 / 0.16); }
-.cbtn :deep(svg) { width: 16px; height: 16px; }
-.cdiv { width: 1px; height: 18px; background: var(--border-hi); margin: 0 2px; }
-.cnow {
-  font: 500 11px/1 var(--font); color: var(--muted); letter-spacing: 0.01em;
-  padding: 0 10px 0 8px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-}
-.cnow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok);
-  box-shadow: 0 0 0 0 var(--ok); animation: blink 1.8s ease-in-out infinite; flex: none; }
+.subtitle-controls { display: flex; align-items: center; gap: 16px; padding: 7px 10px; min-height: 46px; border-bottom: 1px solid var(--border); color: var(--muted); user-select: none; }
+.native-space { width: 70px; height: 28px; flex: none; }
+.action-group, .window-group { display: flex; align-items: center; gap: 8px; flex: none; }
+.window-group { margin-left: auto; }
+:deep(.n-button) { height: 30px; flex: none; border-radius: 7px; }
+:deep(.n-button--circle) { width: 30px; }
+:deep(.n-button__content) { gap: 5px; }
+:deep(.n-icon) { font-size: 18px; }
+.active { color: var(--accent); background: var(--accent-dim); }
+:deep(button:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 580px) { .subtitle-controls { gap: 10px; padding-inline: 8px; }.action-group, .window-group { gap: 4px; } }
+@media (max-width: 540px) { .label { display: none; } }
 </style>

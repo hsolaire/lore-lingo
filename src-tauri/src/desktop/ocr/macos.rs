@@ -18,7 +18,7 @@ pub fn recognize_text(png: &[u8]) -> Result<Vec<OcrObservation>, CaptureTranslat
         return Err(CaptureTranslationError::OcrFailure);
     }
 
-    // Vision objects stay within this function; no native object crosses the adapter boundary.
+    // 此处的原生对象只在同步 Vision 请求期间存活，不会跨越适配器或 IPC 边界。
     unsafe {
         let data = NSData::with_bytes(png);
         let request: Retained<AnyObject> = msg_send![class!(VNRecognizeTextRequest), new];
@@ -71,5 +71,27 @@ pub fn recognize_text(png: &[u8]) -> Result<Vec<OcrObservation>, CaptureTranslat
             });
         }
         Ok(observations)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use screenshots::image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
+
+    use super::*;
+
+    #[test]
+    #[ignore = "需要在非沙箱 macOS 环境调用 Vision 框架"]
+    fn vision_accepts_a_valid_blank_png_and_returns_an_empty_document() {
+        let image = RgbaImage::from_pixel(96, 48, Rgba([255, 255, 255, 255]));
+        let mut png = Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(image)
+            .write_to(&mut png, ImageFormat::Png)
+            .expect("编码测试图片");
+
+        let observations = recognize_text(&png.into_inner()).expect("执行 macOS Vision 烟雾测试");
+        assert!(observations.is_empty());
     }
 }

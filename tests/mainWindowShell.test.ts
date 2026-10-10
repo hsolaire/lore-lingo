@@ -59,6 +59,36 @@ describe('主页窗口壳', () => {
     expect(openSubtitle).toHaveBeenCalledOnce()
   })
 
+  it('macOS 为原生按钮留位，不显示重复的网页窗口控件', async () => {
+    const wrapper = mount(TitleBar, {
+      props: { platform: 'macos' },
+      global: { stubs: { Icon: true } },
+    })
+
+    expect(wrapper.get('header').classes()).toContain('native-controls')
+    expect(wrapper.find('.traffic').exists()).toBe(false)
+    await wrapper.get('header').trigger('mousedown', { button: 0 })
+    expect(startDragging).toHaveBeenCalledOnce()
+    startDragging.mockClear()
+    await wrapper.get('button[aria-label="设置"]').trigger('mousedown', { button: 0 })
+    expect(startDragging).not.toHaveBeenCalled()
+  })
+
+  it('非 macOS 窗口保留可用的自定义控件', async () => {
+    const wrapper = mount(TitleBar, {
+      props: { platform: 'windows' },
+      global: { stubs: { Icon: true } },
+    })
+
+    expect(wrapper.get('header').classes()).not.toContain('native-controls')
+    await wrapper.get('button[aria-label="最小化窗口"]').trigger('click')
+    await wrapper.get('button[aria-label="最大化或还原窗口"]').trigger('click')
+    await wrapper.get('button[aria-label="关闭窗口"]').trigger('click')
+    expect(minimize).toHaveBeenCalledOnce()
+    expect(toggleMaximize).toHaveBeenCalledOnce()
+    expect(close).toHaveBeenCalledOnce()
+  })
+
   it('主页不再挂载内嵌设置抽屉', () => {
     const wrapper = shallowMount(MainPanel, {
       global: {

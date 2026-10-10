@@ -1,6 +1,6 @@
 > 2026-08-05 基线复核：本阶段新增的启动 DTO、SQLite 和启动快照不等同于跨平台 DesktopService、来源目录或平台适配器，因此除已有的 8.2 外不新增完成项。
 >
-> 2026-08-07 来源目录阶段：已接入平台中立的 `DesktopService`、目标平台 `PlatformBackend`、权限与来源目录命令，并完成 Windows/macOS 窗口发现代码和前端来源选择迁移。本阶段不包含 WGC/ScreenCaptureKit 捕获会话、真实区域选择或双平台实机验收；`windowCapture` 在捕获会话实现前保持为 `false`。
+> 2026-08-07 来源目录阶段：已接入平台中立的 `DesktopService`、目标平台 `PlatformBackend`、权限与来源目录命令，并完成 Windows/macOS 窗口发现代码和前端来源选择迁移。本阶段不包含 WGC/ScreenCaptureKit 捕获会话、真实区域选择或双平台实机验收；当时 `windowCapture` 为 `false`。2026-10-10 已增加 macOS 14+ 的单次窗口截图能力，尚未完成连续捕获会话。
 
 ## 1. Toolchain and Contract Baseline
 
@@ -81,3 +81,26 @@
 - [ ] 10.4 Add credential-gated Windows signing and macOS signing/notarization jobs for authorized release tags without exposing secrets to pull requests
 - [ ] 10.5 Create and execute the release smoke-test matrix for scaling, multiple displays, permission transitions, capture failures, Subtitle Overlay exclusion, installation, upgrade, and uninstall
 - [ ] 10.6 Correct README and development documentation so host-local builds are never described as producing another operating system's bundles
+
+## 11. 合并悬浮字幕与顶部工具栏
+
+- [x] 11.1 将主面板与悬浮字幕合并为唯一 main 窗口，旧字幕导航兼容到 main
+- [x] 11.2 将捕获、翻译、方向、配置、设置、版面结果、置顶和工具栏固定放到顶部
+- [x] 11.3 支持移入显示、移开延迟收起、固定偏好恢复和键盘焦点保持
+- [x] 11.4 macOS 原生交通灯与工具栏同步显示，窗口按内容调整高度
+- [x] 11.5 完成构建、单元测试和 macOS arm64 单 Retina 原生交互验收；Windows 与完整辅助功能/DPI 矩阵另行执行
+- [x] 11.6 工具栏直接贴合字幕顶部，左侧翻译入口与右侧窗口操作保持单行，空内容时按钮位置稳定
+
+- [x] 11.7 收敛为翻译选项、窗口、区域和设置四个入口，区域捕获状态与可访问缩略图独立于翻译结果
+- [x] 11.8 设置页为区域与窗口任务提供同一个进程内服务配置，密钥不写入浏览器存储或数据库
+- [x] 11.9 接入 macOS 14+ 单帧显示器/窗口捕获，目录版本校验和原生权限失败提示；长期会话与其他平台仍未完成
+
+- [x] 11.10 已捕获区域支持面板内有界实时预览、X1/X2/Y1/Y2 编辑、修订号校验与同一区域重新捕获；macOS arm64 单 Retina 实测刷新、坐标尺寸、非法输入与 Escape 焦点恢复
+
+- [x] 11.11 将菜单与字幕背景分层，移除展开菜单时的固定最小高度，按实际弹层尺寸留透明空间并在关闭后回收
+
+### 11.11 验证记录
+
+- `pnpm test`：19 个文件、66 项通过；`pnpm build`、Rust 格式/编译检查和 `git diff --check` 通过。
+- macOS 原生 WKWebView 热更新验证翻译菜单和实时区域面板：背景与拖动手柄保持字幕内容高度，菜单外空间透明；Escape 关闭后回到紧凑窗口。
+- 目标语言菜单使用紧凑滚动列表，原生滚动条可到达最后的韩语选项，没有改变用户当前语言或已应用区域坐标；Windows 与完整 DPI/辅助功能矩阵未验证。

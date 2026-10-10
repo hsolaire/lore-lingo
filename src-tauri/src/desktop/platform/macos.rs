@@ -27,7 +27,7 @@ impl PlatformBackend for MacosBackend {
     fn capabilities(&self) -> DesktopCapabilities {
         DesktopCapabilities::new(PlatformKind::Macos, std::env::consts::ARCH)
             .with_screen_capture(true)
-            .with_window_capture(false)
+            .with_window_capture(super::macos_capture::available())
             .with_region_capture(true)
             .with_permission_prompt(true)
             .with_permission_restart_required(true)
@@ -123,7 +123,7 @@ fn discover_windows() -> Result<Vec<DiscoveredCaptureSource>, BackendError> {
             title,
             application_name,
             None,
-            sharing_state != 0,
+            sharing_state != 0 && super::macos_capture::available(),
             NativeCaptureSource::window(window_id as u64),
         ));
     }

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, time::Duration};
 
-use reqwest::Url;
+use reqwest::{redirect::Policy, Url};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -23,6 +23,7 @@ impl TranslationClient {
         let client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(45))
+            .redirect(Policy::none())
             .build()
             .map_err(|_| CaptureTranslationError::BackendFailure)?;
         Ok(Self { client })
@@ -84,12 +85,17 @@ impl TranslationClient {
             return Err(CaptureTranslationError::TranslationProtocol);
         }
 
-        let bytes = response
-            .bytes()
+        let mut response = response;
+        let mut bytes = Vec::new();
+        while let Some(chunk) = response
+            .chunk()
             .await
-            .map_err(|_| CaptureTranslationError::TranslationUnavailable)?;
-        if bytes.len() > MAX_RESPONSE_BYTES {
-            return Err(CaptureTranslationError::TranslationProtocol);
+            .map_err(|_| CaptureTranslationError::TranslationUnavailable)?
+        {
+            if bytes.len().saturating_add(chunk.len()) > MAX_RESPONSE_BYTES {
+                return Err(CaptureTranslationError::TranslationProtocol);
+            }
+            bytes.extend_from_slice(&chunk);
         }
         let chat: ChatResponse = serde_json::from_slice(&bytes)
             .map_err(|_| CaptureTranslationError::TranslationProtocol)?;
@@ -113,30 +119,54 @@ fn validated_completion_url(config: &TranslationConfig) -> Result<Url, CaptureTr
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
 
-    let base =
+    let mut base =
         Url::parse(endpoint).map_err(|_| CaptureTranslationError::TranslationNotConfigured)?;
+    if !base.username().is_empty() || base.password().is_some() || base.host_str().is_none() {
+        return Err(CaptureTranslationError::TranslationNotConfigured);
+    }
     let is_loopback = base.host_str().is_some_and(|host| {
         host.eq_ignore_ascii_case("localhost") || host == "127.0.0.1" || host == "::1"
     });
-    if base.scheme() != "https" && !(base.scheme() == "http" && is_loopback) {
+    if base.scheme() != "http" && base.scheme() != "https" {
+        return Err(CaptureTranslationError::TranslationNotConfigured);
+    }
+    if base
+        .host_str()
+        .and_then(|host| host.parse::<std::net::IpAddr>().ok())
+        .is_some_and(is_disallowed_network_address)
+    {
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
     if !is_loopback && config.api_key.trim().is_empty() {
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
 
-    if base
-        .path()
-        .trim_end_matches('/')
-        .ends_with("/chat/completions")
-    {
+    let base_path = base.path().trim_end_matches('/');
+    if base_path.ends_with("/chat/completions") {
         return Ok(base);
     }
-    base.join(&format!(
-        "{}/chat/completions",
-        base.path().trim_end_matches('/')
-    ))
-    .map_err(|_| CaptureTranslationError::TranslationNotConfigured)
+    base.set_path(&format!("{base_path}/chat/completions"));
+    base.set_query(None);
+    base.set_fragment(None);
+    Ok(base)
+}
+
+fn is_disallowed_network_address(address: std::net::IpAddr) -> bool {
+    match address {
+        std::net::IpAddr::V4(address) => {
+            !address.is_loopback()
+                && (address.is_private()
+                    || address.is_link_local()
+                    || address.is_broadcast()
+                    || address.is_unspecified())
+        }
+        std::net::IpAddr::V6(address) => {
+            !address.is_loopback()
+                && (address.is_unspecified()
+                    || address.is_unique_local()
+                    || address.is_unicast_link_local())
+        }
+    }
 }
 
 fn validate_input(blocks: &[LayoutBlock]) -> Result<(), CaptureTranslationError> {
@@ -305,10 +335,25 @@ mod tests {
             ],
         )
         .is_err());
+
+        assert!(validate_translation_map(
+            &blocks(),
+            vec![
+                TranslatedBlock {
+                    id: "block-0000".into(),
+                    text: "你好".into()
+                },
+                TranslatedBlock {
+                    id: "unknown".into(),
+                    text: "未知".into()
+                },
+            ],
+        )
+        .is_err());
     }
 
     #[test]
-    fn endpoints_require_https_or_loopback_http() {
+    fn endpoints_require_http_or_https() {
         let config = |endpoint: &str, api_key: &str| TranslationConfig {
             endpoint: endpoint.into(),
             model: "model".into(),
@@ -317,7 +362,20 @@ mod tests {
             target_language: "简体中文".into(),
         };
         assert!(validated_completion_url(&config("https://api.example.com/v1", "secret")).is_ok());
+        assert_eq!(
+            validated_completion_url(&config("https://api.example.com/v1/", "secret"))
+                .expect("补全聊天接口")
+                .path(),
+            "/v1/chat/completions"
+        );
         assert!(validated_completion_url(&config("http://127.0.0.1:11434/v1", "")).is_ok());
-        assert!(validated_completion_url(&config("http://api.example.com/v1", "secret")).is_err());
+        assert!(validated_completion_url(&config("http://api.example.com/v1", "secret")).is_ok());
+        assert!(validated_completion_url(&config("ftp://api.example.com/v1", "secret")).is_err());
+        assert!(validated_completion_url(&config("https://192.168.1.20/v1", "secret")).is_err());
+        assert!(validated_completion_url(&config(
+            "https://user:pass@api.example.com/v1",
+            "secret"
+        ))
+        .is_err());
     }
 }

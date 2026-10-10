@@ -38,4 +38,12 @@ describe('窗口导航', () => {
 
     expect(hide).toHaveBeenCalledWith('settings')
   })
+
+  it('旧字幕入口聚焦合并主窗口，避免出现第二个窗口', async () => {
+    const navigation = useWindowNavigation('subtitle')
+    await navigation.openSubtitle()
+    await navigation.hideCurrent()
+    expect(showOrFocus).toHaveBeenCalledWith('main')
+    expect(hide).toHaveBeenCalledWith('main')
+  })
 })

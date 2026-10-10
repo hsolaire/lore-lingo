@@ -8,7 +8,7 @@ import {
 } from '@/services/subtitleWindow'
 
 const WIDTH_STORAGE_KEY = 'subtitle:width'
-const MIN_WINDOW_WIDTH = 328
+const MIN_WINDOW_WIDTH = 520
 const MAX_WINDOW_WIDTH = 1248
 const RESIZE_SETTLE_MS = 80
 
@@ -38,7 +38,7 @@ export function useSubtitleWindow(contentEl: Ref<HTMLElement | null>) {
       const el = contentEl.value
       if (!el) return
 
-      const height = Math.ceil(el.getBoundingClientRect().height)
+      const height = Math.max(104, Math.min(720, Math.ceil(el.getBoundingClientRect().height)))
       if (Math.abs(height - lastAppliedHeight) <= 1) return
 
       lastAppliedHeight = height
@@ -86,10 +86,12 @@ export function useSubtitleWindow(contentEl: Ref<HTMLElement | null>) {
     const storedWidth = readStoredWidth()
     if (storedWidth) {
       const width = clamp(storedWidth, MIN_WINDOW_WIDTH, MAX_WINDOW_WIDTH)
+      if (disposed) return
       await resizeSubtitle(width, window.innerHeight).catch(() => {})
     }
 
     if (disposed) return
+    if (typeof ResizeObserver === 'undefined') return
     observer = new ResizeObserver(fitWindowToContent)
     if (contentEl.value) observer.observe(contentEl.value)
     window.addEventListener('resize', onWindowResize)

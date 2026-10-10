@@ -40,7 +40,7 @@ onUnmounted(() => {
   <AppProviders>
     <template v-if="bootstrap.status === 'ready'">
       <CaptureFrame />
-      <MainPanel />
+      <MainPanel :platform="bootstrap.snapshot.platform.platform" />
       <AppToast />
     </template>
     <main v-else class="bootstrap-state" aria-live="polite">

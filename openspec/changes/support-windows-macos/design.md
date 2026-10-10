@@ -156,7 +156,11 @@ The subtitle overlay becomes a content-sized transparent Tauri window rather tha
 
 Region selection uses temporary borderless windows sized to each monitor and destroys them when selection finishes or is cancelled. These windows are never left active during capture.
 
-The main window keeps custom decorations, but controls are platform-correct: macOS traffic controls on the left and Windows minimize/close controls on the right. Behavior uses Tauri APIs, while Vue obtains platform data from `DesktopCapabilities` rather than user-agent parsing.
+主面板和悬浮字幕合并为唯一的 `main` 悬浮窗口，默认置顶；不再创建独立 `subtitle` 窗口，旧字幕导航映射到 `main`。字幕顶部左侧只保留四个入口：翻译选项下拉、捕获窗口下拉、捕获区域、设置。翻译选项承载语言方向、原文/译文/双语显示、复制和版面结果；模型、服务地址与密钥统一在设置页配置。窗口置顶和固定工具栏独立位于右侧。鼠标移入或键盘焦点进入时显示工具栏，移开 450 毫秒后收起；固定工具栏、展开下拉菜单或区域预览、版面结果和进行中的任务会阻止自动收起。仅持久化工具栏固定偏好，不存储密钥或捕获内容。
+
+工具栏直接位于字幕顶部，与内容共用一个表面和外边框，中间不留间隔。四个入口从左向右排列，窗口置顶和固定工具栏靠右。区域截图完成即显示“已捕获”，不依赖 OCR 或远程翻译成功；悬停或键盘焦点展示真实截图缩略图和物理尺寸。复制及版面操作位于翻译选项内，内容不可用时禁用。macOS 原生交通灯继续位于左上角。
+
+macOS 保留原生交通灯，工具栏为其留位；平台适配器在 AppKit 主线程通过系统按钮的隐藏属性与工具栏同步显示，原生对象不越过平台边界。Windows 在工具栏右侧保留最小化和关闭。Vue 从启动快照获取平台信息。主窗口由内容测量驱动高度变化，工具栏收起后减少空白和输入表面；来源列表、下拉菜单与区域预览浮在字幕表面上；字幕表面高度只由自身内容决定，宿主仅按实际弹层边界留出透明空间，关闭时自动收回，不绘制扩张的整块背景。设置仍是按需显示的独立窗口。截图翻译结果直接更新同一窗口的原文与译文，并保留可展开的版面结果视图。
 
 Alternative considered: keep the fixed transparent Subtitle Overlay. Rejected because it blocks input over invisible areas and assumes one 1920 x 1080 monitor.
 
@@ -192,3 +196,13 @@ Rollback remains possible until step 6 by switching Vue back to legacy commands.
 
 - The concrete maintained Rust binding for ScreenCaptureKit will be selected by the bounded compile/performance spike; native framework choice remains private to `PlatformBackend` and cannot change the shared contract.
 - Global shortcuts are excluded from this compatibility change and will be specified with the later OCR/translation workflow.
+
+### 当前单次 macOS 捕获实现
+
+单次截图翻译在 macOS 14 及以上使用目标限定的 `objc2-screen-capture-kit` 与 `SCScreenshotManager` 捕获显示器或选中窗口，不代表长期连续会话已经完成。窗口请求通过 `sourceId` 与 `catalogRevision` 在 Rust 目录解析，拒绝过期来源。macOS 13 的单帧能力返回显式不支持；Windows、Intel 与连续会话仍需后续原生验证。区域开始前隐藏主窗口，单次截图在 OCR 前发送当前预览；空识别和翻译失败保留预览。
+
+### 区域实时预览与坐标调整
+
+已捕获区域的显示器 ID、尺寸、边界与单调修订号保存在 Rust 进程内。前端面板只保留当前缩略图，每帧完成后 0.5 秒请求下一帧；关闭或切换面板后丢弃在途结果并停止后续轮询。原生捕获仍为有界单帧调用，不代表长期连续 OCR/翻译会话完成。显示器捕获排除本进程窗口，避免递归画面。
+
+X1/Y1 与 X2/Y2 是同一显示器局部的左上、右下逻辑坐标；前后端校验有限数值、显示器边界及最小 4 单位宽高。更新按修订号原子提交，预览失败明确暂停并允许重试。翻译按钮先停预览并等待在途捕获释放，再使用当前坐标重新捕获，不自动调用模型服务。

@@ -16,6 +16,10 @@ pub use models::{
     PhysicalSize, PlatformKind, RecoveryAction,
 };
 pub use platform::{
-    create_platform_backend, DiscoveredCaptureSource, NativeCaptureSource, PlatformBackend,
+    capture_window_image, create_platform_backend, set_window_controls_visible,
+    DiscoveredCaptureSource, NativeCaptureSource, PlatformBackend,
 };
 pub use service::DesktopService;
+
+#[cfg(target_os = "macos")]
+pub use platform::capture_display_image;

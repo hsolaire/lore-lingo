@@ -6,6 +6,25 @@ use std::sync::Arc;
 
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "macos")]
+mod macos_capture;
+#[cfg(target_os = "macos")]
+mod macos_window;
+
+pub fn set_window_controls_visible(
+    window: tauri::WebviewWindow,
+    visible: bool,
+) -> Result<(), crate::domain::translation::PublicError> {
+    #[cfg(target_os = "macos")]
+    {
+        macos_window::set_controls_visible(window, visible)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (window, visible);
+        Ok(())
+    }
+}
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 mod unsupported;
 #[cfg(target_os = "windows")]
@@ -158,6 +177,27 @@ pub fn create_platform_backend() -> Arc<dyn PlatformBackend> {
     {
         Arc::new(unsupported::UnsupportedBackend)
     }
+}
+
+#[cfg(target_os = "macos")]
+pub fn capture_display_image(id: u32) -> Result<screenshots::image::RgbaImage, BackendError> {
+    macos_capture::capture(macos_capture::CaptureTarget::Display(id))
+}
+
+pub fn capture_window_image(
+    source: NativeCaptureSource,
+) -> Result<screenshots::image::RgbaImage, BackendError> {
+    #[cfg(target_os = "macos")]
+    if let NativeCaptureSource::Window(id) = source {
+        let id = u32::try_from(id).map_err(|_| BackendError::failure("invalid capture target"))?;
+        return macos_capture::capture(macos_capture::CaptureTarget::Window(id));
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = source;
+    Err(BackendError::new(
+        crate::desktop::BackendErrorCode::UnsupportedCapability,
+        "single-frame window capture unavailable",
+    ))
 }
 
 #[cfg(test)]

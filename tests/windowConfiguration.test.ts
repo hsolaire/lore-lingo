@@ -11,11 +11,11 @@ async function readJson<T>(path: string): Promise<T> {
   return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8')) as T
 }
 
-describe('三窗口构建配置', () => {
+describe('合并悬浮字幕构建配置', () => {
   it('Vite 包含独立设置入口', () => {
     return readFile(resolve(process.cwd(), 'vite.config.ts'), 'utf8').then((source) => {
       expect(source).toMatch(/main:\s*fileURLToPath\(new URL\('\.\/index\.html'/)
-      expect(source).toMatch(/subtitle:\s*fileURLToPath\(new URL\('\.\/subtitle\.html'/)
+      expect(source).not.toMatch(/subtitle:\s*fileURLToPath/)
       expect(source).toMatch(/settings:\s*fileURLToPath\(new URL\('\.\/settings\.html'/)
     })
   })
@@ -32,6 +32,10 @@ describe('三窗口构建配置', () => {
       decorations: false,
       width: 720,
       height: 612,
+    })
+    expect(config.app.windows.map(window => window.label)).toEqual(['main', 'settings'])
+    expect(config.app.windows.find(window => window.label === 'main')).toMatchObject({
+      alwaysOnTop: true, width: 900, minWidth: 520, minHeight: 104,
     })
   })
 

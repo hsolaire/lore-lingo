@@ -2,19 +2,20 @@ import { computed, ref } from 'vue'
 import { desktopClient } from '@/services/desktopClient'
 import type { CapturePermissionStatus, CaptureSourceSummary } from '@/types/desktop'
 import { useToast } from './useToast'
+import { useCaptureTranslation } from './useCaptureTranslation'
 
 export type SourceMode = 'app' | 'region'
 
 const sourceMode = ref<SourceMode>('app')
-const selecting = ref(false)
 const windowList = ref<CaptureSourceSummary[]>([])
 const selectedWindow = ref<CaptureSourceSummary | null>(null)
 const listOpen = ref(false)
 const listLoading = ref(false)
-let selectTimer: ReturnType<typeof setTimeout> | undefined
 
 export function useCaptureSource() {
   const { toast } = useToast()
+  const captureTranslation = useCaptureTranslation()
+  const selecting = computed(() => captureTranslation.state.value.status === 'selecting')
 
   const targetName = computed(() => {
     if (sourceMode.value === 'app') {
@@ -27,7 +28,12 @@ export function useCaptureSource() {
     if (sourceMode.value === 'app') {
       return selectedWindow.value?.applicationName ?? '点击下方选择目标窗口'
     }
-    return '520 × 118 · 屏幕坐标 (700, 46)'
+    const status = captureTranslation.state.value.status
+    if (status === 'selecting') return '请在屏幕上拖拽选择翻译区域'
+    if (status === 'processing') return '正在识别文字并翻译'
+    if (status === 'success') return '区域翻译已完成'
+    if (status === 'empty') return '所选区域未识别到文字'
+    return '点击开始框选屏幕区域'
   })
 
   async function fetchWindows() {
@@ -81,26 +87,23 @@ export function useCaptureSource() {
     }
   }
 
-  function startSelect() {
-    selecting.value = true
-    toast('拖拽屏幕以框选区域…')
-    clearTimeout(selectTimer)
-    selectTimer = setTimeout(() => {
-      selecting.value = false
-      toast('区域已捕获')
-    }, 1900)
+  async function startSelect() {
+    await captureTranslation.start()
+    if (captureTranslation.state.value.status === 'error') {
+      toast(captureTranslation.state.value.error.message)
+    }
   }
 
   function setSource(mode: SourceMode) {
     sourceMode.value = mode
     if (mode === 'region') {
       listOpen.value = false
-      startSelect()
+      void startSelect()
     }
   }
 
   function reselect() {
-    if (sourceMode.value === 'region') startSelect()
+    if (sourceMode.value === 'region') void startSelect()
     else toggleList()
   }
 

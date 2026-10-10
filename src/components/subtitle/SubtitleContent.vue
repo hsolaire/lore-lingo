@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTranslator } from '@/composables/useTranslator'
 
-defineProps<{ swap?: boolean }>()
+withDefaults(defineProps<{ swap?: boolean; mode?: 'original' | 'translated' | 'bilingual' }>(), { mode: 'bilingual' })
 
 const emit = defineEmits<{
   (e: 'dragbar-mousedown', ev: MouseEvent): void
@@ -14,8 +14,9 @@ const { srcText, tgtText } = useTranslator()
 <template>
   <div class="subtitle-content" :class="{ swap }">
     <div class="drag-bar" @mousedown="emit('dragbar-mousedown', $event)" />
-    <p class="subtitle-source">{{ srcText }}</p>
-    <p class="subtitle-target">{{ tgtText }}</p>
+    <p v-if="srcText && mode !== 'translated'" class="subtitle-source">{{ srcText }}</p>
+    <p v-if="mode !== 'original'" class="subtitle-target" :class="{ empty: !tgtText }">{{ tgtText || '译文会显示在这里' }}</p>
+    <p v-if="!srcText && !tgtText" class="subtitle-hint">移入显示工具栏，选择捕获来源后开始翻译</p>
     <div class="resize-handle left"  @mousedown="emit('resize-mousedown', $event, 'left')" />
     <div class="resize-handle right" @mousedown="emit('resize-mousedown', $event, 'right')" />
   </div>
@@ -24,25 +25,14 @@ const { srcText, tgtText } = useTranslator()
 <style scoped>
 .subtitle-content {
   position: relative;
-  background: oklch(20% 0.02 260 / 0.62);
-  backdrop-filter: blur(44px) saturate(1.8);
-  -webkit-backdrop-filter: blur(44px) saturate(1.8);
-  border: 1px solid var(--border-hi);
-  border-radius: 18px;
-  padding: 68px 26px 24px;
+  padding: 24px 26px 26px;
   text-align: center;
   overflow: hidden;
 }
-.subtitle-content::before {
-  content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-hi), transparent);
-  border-radius: 18px 18px 0 0;
-}
-
 .drag-bar {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 28px;
+  height: 18px;
   border-radius: 18px 18px 0 0;
   cursor: grab;
 }
@@ -52,12 +42,20 @@ const { srcText, tgtText } = useTranslator()
   font: 500 16px/1.45 var(--font); color: var(--muted); letter-spacing: 0.01em;
   margin-bottom: 7px; transition: opacity .18s;
   -webkit-app-region: no-drag;
+  white-space: pre-line;
+  max-height: 140px;
+  overflow-y: auto;
 }
 .subtitle-target {
   font: 600 30px/1.35 var(--font-display); color: var(--fg); letter-spacing: -0.015em;
   text-wrap: balance; transition: opacity .18s;
   -webkit-app-region: no-drag;
+  white-space: pre-line;
+  max-height: 260px;
+  overflow-y: auto;
 }
+.subtitle-target.empty { font-size: 20px; color: var(--muted); font-weight: 500; }
+.subtitle-hint { font-size: 11px; color: var(--faint); margin-top: 8px; }
 .subtitle-content.swap .subtitle-source,
 .subtitle-content.swap .subtitle-target { opacity: 0; }
 
