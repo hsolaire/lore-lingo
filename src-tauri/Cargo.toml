@@ -22,6 +22,7 @@ tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rusqlite = { version = "=0.39.0", features = ["bundled"] }
+uuid = { version = "1", features = ["v4"] }
 
 # 屏幕截图（macOS / Windows / Linux 均支持）
 screenshots = "0.8"
@@ -30,6 +31,8 @@ image = { version = "0.24", default-features = false, features = ["png"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
+keyring-core = "1"
+windows-native-keyring-store = "1"
 windows = { version = "0.58", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
@@ -40,6 +43,8 @@ windows = { version = "0.58", features = [
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+keyring-core = "1"
+apple-native-keyring-store = { version = "1", features = ["keychain"] }
 block2 = "0.6"
 objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["std", "CFCGTypes"] }
 objc2-screen-capture-kit = { version = "0.3.2", default-features = false, features = ["std", "libc", "SCShareableContent", "SCStream", "SCScreenshotManager", "block2", "objc2-core-graphics", "objc2-core-foundation"] }

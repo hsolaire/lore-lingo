@@ -110,14 +110,21 @@ pub fn run() {
         .setup(|app| {
             use tauri::Manager;
 
-            let bootstrap = app
+            let database = app
                 .path()
                 .app_data_dir()
                 .ok()
-                .map(|directory| {
-                    BootstrapService::new(db::connection::Database::initialize(&directory))
-                })
-                .unwrap_or_else(BootstrapService::unavailable);
+                .map(|directory| db::connection::Database::initialize(&directory))
+                .unwrap_or_else(|| {
+                    Err(db::DatabaseError::InvalidData("应用数据目录不可用".into()))
+                });
+            let bootstrap = match &database {
+                Ok(database) => BootstrapService::new(Ok(database.clone())),
+                Err(_) => BootstrapService::unavailable(),
+            };
+            app.manage(Arc::new(
+                services::translation_config::TranslationConfigService::new(database),
+            ));
             app.manage(Arc::new(bootstrap));
             Ok(())
         })

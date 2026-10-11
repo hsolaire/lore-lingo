@@ -72,7 +72,7 @@ The application SHALL present the captured image at a stable aspect ratio and SH
 - **THEN** the block reduces text size within configured bounds, wraps text, and contains any remaining overflow without resizing or overlapping adjacent blocks
 
 ### Requirement: Private and recoverable task lifecycle
-The system MUST keep screenshots, recognized text, translations, and API credentials out of persistent browser and application storage during this workflow and SHALL expose deterministic task states and safe errors.
+系统 MUST 不将截图、识别文本和译文写入浏览器或应用持久化存储；API 凭据 MUST 仅持久化到原生系统凭据存储，且系统 SHALL 提供确定的任务状态和安全错误。
 
 #### Scenario: Task reaches a terminal state
 - **WHEN** a task succeeds, fails, or is cancelled
@@ -84,14 +84,14 @@ The system MUST keep screenshots, recognized text, translations, and API credent
 
 #### Scenario: User retries after failure
 - **WHEN** the user retries a recoverable failure
-- **THEN** the system starts a new task using current in-memory configuration and does not reuse stale selector or result state
+- **THEN** the system starts a new task using current persisted configuration and does not reuse stale selector or result state
 
-### Requirement: 可校验的运行期翻译设置
-设置页 SHALL 读取并应用区域和窗口任务共用的进程内配置；保存时 SHALL 使用实际翻译请求相同的端点与凭据规则，不因配置通过校验而声称已验证服务连通性。
+### Requirement: 可校验的持久化翻译设置
+设置页 SHALL 读取并保存区域和窗口任务共用的持久化配置；保存时 SHALL 使用实际翻译请求相同的端点与凭据规则，不因配置通过校验而声称已验证服务连通性。
 
 #### Scenario: 应用有效配置
 - **WHEN** 用户显式应用包含有效地址、模型和所需 API Key 的配置
-- **THEN** 系统去除字段首尾空白并更新共享运行期配置，下一次捕获使用该配置，密钥不会写入磁盘
+- **THEN** 系统去除字段首尾空白并以同一 SQLite 事务保存地址、模型和默认语言，密钥仅写入系统凭据存储，数据库只保留引用，下一次捕获与重启后使用该配置
 - **AND** IPv4 与 IPv6 回环服务可以不填写 API Key
 
 #### Scenario: 拒绝无效配置
@@ -106,5 +106,20 @@ The system MUST keep screenshots, recognized text, translations, and API credent
 
 #### Scenario: 说明尚未接入的设置
 - **WHEN** 用户查看设置页
-- **THEN** 当前可用配置优先展示，自动翻译、历史、字幕库与跨重启配置的未完成状态明确标注
+- **THEN** 当前可用配置优先展示，自动翻译、历史与字幕库的未完成状态明确标注
 - **AND** 未完成配置不显示为当前单次捕获已生效的选项，更多功能支持键盘展开与收起
+
+#### Scenario: 重启恢复配置
+- **WHEN** 应用重新启动并读取配置
+- **THEN** 系统从 SQLite 恢复默认模型、地址和语言，从原生凭据存储恢复 API Key，不依赖先前进程或浏览器存储
+
+#### Scenario: 存储失败
+- **WHEN** 凭据写入或数据库事务失败
+- **THEN** 系统返回安全的结构化错误，保留上一次已提交的配置和密钥，不显示保存成功
+- **AND** 新建但未提交的凭据被尽力清理，绝不降级为明文存储
+
+#### Scenario: 系统凭据丢失或不可访问
+- **WHEN** 已保存的凭据条目被外部删除
+- **THEN** 系统恢复非密钥配置并将密钥字段留空，允许用户重新填写保存
+- **WHEN** 系统拒绝凭据读取
+- **THEN** 配置读取失败且设置页禁用覆盖保存，提供重试入口

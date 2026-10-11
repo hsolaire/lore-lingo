@@ -42,7 +42,7 @@ impl PlatformBackend for WindowsBackend {
             .with_self_exclusion(false)
             .with_system_ocr(false)
             .with_global_shortcuts(false)
-            .with_credential_storage(false)
+            .with_credential_storage(true)
     }
 
     fn capture_permission(&self) -> Result<CapturePermission, BackendError> {

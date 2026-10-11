@@ -34,7 +34,7 @@ impl PlatformBackend for MacosBackend {
             .with_self_exclusion(false)
             .with_system_ocr(true)
             .with_global_shortcuts(false)
-            .with_credential_storage(false)
+            .with_credential_storage(true)
     }
 
     fn capture_permission(&self) -> Result<CapturePermission, BackendError> {

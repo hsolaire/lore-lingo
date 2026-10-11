@@ -24,7 +24,7 @@ describe('翻译设置面板', () => {
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.get('#planned-features').isVisible()).toBe(true)
-    expect(wrapper.get('#planned-features').text()).toContain('重启后保留配置')
+    expect(wrapper.get('#planned-features').text()).not.toContain('重启后保留配置')
     await toggle.trigger('click')
     expect(wrapper.get('#planned-features').isVisible()).toBe(false)
     wrapper.unmount()

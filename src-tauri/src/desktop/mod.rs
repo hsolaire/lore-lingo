@@ -3,6 +3,7 @@ mod error;
 mod models;
 pub mod ocr;
 mod platform;
+pub use platform::credentials;
 mod service;
 
 pub use commands::{

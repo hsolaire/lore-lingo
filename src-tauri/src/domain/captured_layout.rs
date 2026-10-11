@@ -138,7 +138,7 @@ pub struct LayoutDocument {
     pub blocks: Vec<LayoutBlock>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TranslationConfig {
     pub endpoint: String,
@@ -146,6 +146,19 @@ pub struct TranslationConfig {
     pub api_key: String,
     pub source_language: String,
     pub target_language: String,
+}
+
+impl std::fmt::Debug for TranslationConfig {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TranslationConfig")
+            .field("endpoint", &self.endpoint)
+            .field("model", &self.model)
+            .field("api_key", &"[已隐藏]")
+            .field("source_language", &self.source_language)
+            .field("target_language", &self.target_language)
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]

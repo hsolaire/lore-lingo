@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::services::translation_config::TranslationConfigService;
+
 use tauri::{
     Emitter, Manager, PhysicalPosition, PhysicalSize, Position, Size, State, WebviewUrl,
     WebviewWindow, WebviewWindowBuilder,
@@ -294,26 +296,34 @@ fn desktop_error_to_public(error: crate::desktop::DesktopError) -> PublicError {
 }
 
 #[tauri::command]
-pub fn get_capture_translation_config(
+pub async fn get_capture_translation_config(
     window: WebviewWindow,
-    service: State<'_, Arc<CaptureTranslationService>>,
+    service: State<'_, Arc<TranslationConfigService>>,
 ) -> Result<TranslationConfig, PublicError> {
     if !matches!(window.label(), "main" | "settings") {
         return Err(CaptureTranslationError::UnsupportedCapability.into());
     }
-    service.config().map_err(PublicError::from)
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || service.load())
+        .await
+        .map_err(|_| PublicError::from(CaptureTranslationError::BackendFailure))?
+        .map_err(PublicError::from)
 }
 
 #[tauri::command]
-pub fn save_capture_translation_config(
+pub async fn save_capture_translation_config(
     window: WebviewWindow,
-    service: State<'_, Arc<CaptureTranslationService>>,
+    service: State<'_, Arc<TranslationConfigService>>,
     config: TranslationConfig,
 ) -> Result<TranslationConfig, PublicError> {
     if window.label() != "settings" {
         return Err(CaptureTranslationError::UnsupportedCapability.into());
     }
-    service.save_config(config).map_err(PublicError::from)
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || service.save(config))
+        .await
+        .map_err(|_| PublicError::from(CaptureTranslationError::BackendFailure))?
+        .map_err(PublicError::from)
 }
 
 #[tauri::command]

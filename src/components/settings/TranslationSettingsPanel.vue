@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 const serviceStatus = ref<'loading' | 'configured' | 'unconfigured' | 'error'>('loading')
 const showPlanned = ref(false)
-const statusLabels = { loading: '正在读取', configured: '已应用', unconfigured: '待配置', error: '读取失败' } as const
+const statusLabels = { loading: '正在读取', configured: '已保存', unconfigured: '待配置', error: '读取失败' } as const
 
 const languageNames: Record<string, string> = {
   auto: '自动检测',
@@ -65,7 +65,6 @@ const targetLanguage = computed(() => formatLanguageName(targetLanguageCode.valu
           <li><b>自动翻译</b><span>按间隔持续识别和刷新译文</span></li>
           <li><b>字幕库匹配</b><span>优先使用已导入的本地字幕</span></li>
           <li><b>翻译历史</b><span>保存记录并设置保留时间</span></li>
-          <li><b>重启后保留配置</b><span>自动恢复服务配置与安全保存的密钥</span></li>
         </ul>
       </div>
     </div>

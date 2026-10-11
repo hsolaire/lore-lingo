@@ -5,6 +5,7 @@ pub mod ocr_settings;
 pub mod shortcut_bindings;
 pub mod subtitle_library;
 pub mod translation_cache;
+pub mod translation_config;
 pub mod translation_history;
 pub mod translation_sessions;
 pub mod translation_settings;

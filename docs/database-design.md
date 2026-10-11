@@ -35,7 +35,9 @@ LoreLingo 当前是单机桌面应用，没有账号、租户或云同步。因�
 
 ### 密钥不进入 SQLite
 
-`sys_model_profiles.secret_ref` 和 `sys_ocr_settings.secret_ref` 保存系统钥匙串中的条目标识，例如 `lore-lingo/model-profile/3`，API Key 本体使用 macOS Keychain、Windows Credential Manager 或 Linux Secret Service 保存。`options_json` 也不能存放鉴权请求头。SQLite 文件、日志、备份和导出中都不应出现明文密钥。
+`sys_model_profiles.secret_ref` 和 `sys_ocr_settings.secret_ref` 保存系统凭据条目的引用。当前单次翻译使用随机 `translation-<UUID>`，服务命名空间固定为 `com.lorelingo.app`；API Key 本体使用 macOS Keychain 或 Windows Credential Manager 保存，其他平台明确不支持密钥持久化。`options_json` 也不能存放鉴权请求头。SQLite 文件、日志、备份和导出中都不应出现明文密钥。
+
+当前设置表单通过 `TranslationConfigService` 将默认模型的地址、名称、密钥引用与单例翻译设置的模型指针、默认语言放在同一事务中保存，未编辑的配置保留原值。初始化后按需从同一默认模型恢复配置；系统密钥读取不在界面线程执行。更新密钥先暂存新凭据再提交引用，数据库失败保留旧配置；提交后尽力清理不再引用的条目。工具栏临时语言方向和其他尚未接入的设置编辑不属于这条保存链路。
 
 ### 历史与缓存分离
 

@@ -4,6 +4,8 @@ use crate::desktop::{
 use screenshots::Screen;
 use std::sync::Arc;
 
+pub mod credentials;
+
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]

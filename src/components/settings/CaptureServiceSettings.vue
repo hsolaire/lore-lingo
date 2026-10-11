@@ -70,7 +70,7 @@ async function save() {
   saving.value = true
   message.value = ''
   try {
-    // 步骤 2. 交由后端按实际请求规则校验并应用运行期配置。
+    // 步骤 2. 交由后端按实际请求规则校验并持久化配置。
     const config = await captureTranslationClient.saveConfig({ ...draft, endpoint: draft.endpoint.trim(), model: draft.model.trim(), apiKey: draft.apiKey.trim() })
     // 步骤 3. 仅在成功后更新撤销基线；失败保留旧配置并显示安全提示。
     Object.assign(draft, config)
@@ -78,10 +78,10 @@ async function save() {
     emit('configured', true)
     emit('status', 'configured')
     failed.value = false
-    message.value = '配置已应用，下一次捕获将使用此服务和模型。'
+    message.value = '配置已保存并应用，重启后会自动恢复。'
   } catch {
     failed.value = true
-    message.value = '无法应用配置。请检查地址、模型和 API Key；当前使用的配置未被修改。'
+    message.value = '无法保存配置。请检查配置与系统凭据授权后重试；当前使用的配置未被修改。'
   } finally { saving.value = false }
 }
 
@@ -109,12 +109,12 @@ onMounted(load)
         <NInput v-model:value="draft.apiKey" :input-props="{ 'aria-label': 'API Key', 'aria-invalid': submitted && !!keyError, 'aria-describedby': submitted && keyError ? 'key-feedback' : undefined, autocomplete: 'off' }" type="password" show-password-on="click" :placeholder="localService ? '本地服务可留空' : '填写服务提供的 API Key'" />
         <template #feedback><span v-if="submitted && keyError" id="key-feedback">{{ keyError }}</span></template>
       </NFormItem>
-      <div class="session-note"><NIcon :component="ShieldCheck" :size="15" /><p>仅在本次运行中生效，重启后需重新配置。API Key 不会写入磁盘。</p></div>
+      <div class="session-note"><NIcon :component="ShieldCheck" :size="15" /><p>配置在保存后会自动恢复。API Key 安全存储在系统钥匙串或凭据管理器中。</p></div>
       <NAlert v-if="message" :type="failed ? 'error' : 'success'" :bordered="false" class="save-message" :role="failed ? 'alert' : 'status'">{{ message }}</NAlert>
       <footer class="form-actions">
-        <span class="draft-status" role="status">{{ dirty ? '有未应用的修改' : valid ? '当前配置已应用' : '填写服务信息后应用' }}</span>
+        <span class="draft-status" role="status">{{ dirty ? '有未保存的修改' : valid ? '当前配置已保存' : '填写服务信息后保存' }}</span>
         <NButton v-if="dirty" quaternary :disabled="saving" @click="reset"><template #icon><NIcon :component="RotateCcw" /></template>撤销修改</NButton>
-        <NButton type="primary" attr-type="submit" :loading="saving"><template #icon><NIcon :component="Check" /></template>应用配置</NButton>
+        <NButton type="primary" attr-type="submit" :loading="saving"><template #icon><NIcon :component="Check" /></template>保存并应用</NButton>
       </footer>
     </NForm>
   </div>

@@ -36,7 +36,7 @@ impl PlatformCapabilities {
             window_capture: false,
             system_ocr: true,
             global_shortcuts: false,
-            credential_storage: false,
+            credential_storage: true,
         };
 
         #[cfg(target_os = "windows")]
@@ -46,7 +46,7 @@ impl PlatformCapabilities {
             window_capture: false,
             system_ocr: false,
             global_shortcuts: false,
-            credential_storage: false,
+            credential_storage: true,
         };
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
