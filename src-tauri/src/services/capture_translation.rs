@@ -195,18 +195,28 @@ impl CaptureTranslationService {
 
     pub fn save_config(
         &self,
-        config: TranslationConfig,
+        mut config: TranslationConfig,
     ) -> Result<TranslationConfig, CaptureTranslationError> {
+        // 步骤 1. 统一字段空白，限制配置长度和语言方向。
+        config.endpoint = config.endpoint.trim().into();
+        config.model = config.model.trim().into();
+        config.api_key = config.api_key.trim().into();
+        config.source_language = config.source_language.trim().into();
+        config.target_language = config.target_language.trim().into();
         if config.endpoint.len() > 2048
             || config.model.len() > 256
             || config.api_key.len() > 16384
             || config.source_language.len() > 128
             || config.target_language.len() > 128
-            || !(config.endpoint.starts_with("https://") || config.endpoint.starts_with("http://"))
-            || config.model.trim().is_empty()
+            || config.source_language.is_empty()
+            || config.target_language.is_empty()
+            || config.target_language == "auto"
         {
             return Err(CaptureTranslationError::TranslationNotConfigured);
         }
+        // 步骤 2. 与实际请求共用校验，失败时保留上一次已应用的值。
+        super::translation::validated_completion_url(&config)?;
+        // 步骤 3. 校验完成后一次性替换共享配置。
         *self
             .config
             .lock()
@@ -528,6 +538,48 @@ mod tests {
             service.config().expect("保留原配置").endpoint,
             "http://127.0.0.1:11434/v1"
         );
+    }
+
+    #[test]
+    fn saving_rejects_unusable_endpoints_and_keeps_applied_configuration() {
+        let service = CaptureTranslationService::new().expect("创建服务");
+        let original = translation_config();
+        service.save_config(original.clone()).expect("应用有效配置");
+        for endpoint in [
+            "https://",
+            "https://api.example.com/v1",
+            "https://user:password@api.example.com/v1",
+            "http://192.168.1.2/v1",
+            "http://127.0.0.1:11434/v1?token=value",
+            "http://127.0.0.1:11434/v1#fragment",
+        ] {
+            let mut invalid = original.clone();
+            invalid.endpoint = endpoint.into();
+            assert_eq!(
+                service.save_config(invalid),
+                Err(CaptureTranslationError::TranslationNotConfigured)
+            );
+            assert_eq!(service.config().expect("读取配置"), original);
+        }
+        let mut invalid = original.clone();
+        invalid.target_language = "auto".into();
+        assert!(service.save_config(invalid).is_err());
+        assert_eq!(service.config().expect("读取配置"), original);
+    }
+
+    #[test]
+    fn saving_normalizes_fields_and_accepts_ipv6_loopback_without_a_key() {
+        let service = CaptureTranslationService::new().expect("创建服务");
+        let mut config = translation_config();
+        config.endpoint = " http://[::1]:11434/v1 ".into();
+        config.model = " test-model ".into();
+        config.source_language = " en ".into();
+        config.target_language = " zh-CN ".into();
+        let saved = service.save_config(config).expect("IPv6 本地模型无需密钥");
+        assert_eq!(saved.endpoint, "http://[::1]:11434/v1");
+        assert_eq!(saved.model, "test-model");
+        assert_eq!(saved.source_language, "en");
+        assert_eq!(saved.target_language, "zh-CN");
     }
 
     #[test]

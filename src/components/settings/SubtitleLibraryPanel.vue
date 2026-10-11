@@ -16,17 +16,17 @@ import { NButton, NEmpty, NIcon, NTag } from 'naive-ui'
     <div class="dropzone" aria-disabled="true">
       <NIcon :component="Captions" size="25" />
       <b>字幕导入暂不可用</b>
-      <span>计划支持 .srt、.ass、.vtt，并由 Rust 后台校验和索引。</span>
+      <span>计划支持 .srt、.ass、.vtt 格式。</span>
       <NButton size="small" disabled>选择字幕文件</NButton>
     </div>
 
-    <NEmpty description="尚未从数据库加载字幕文件列表">
+    <NEmpty description="字幕文件列表暂不可用">
       <template #icon><NIcon :component="Database" /></template>
     </NEmpty>
 
     <div class="honest-state" role="status">
       <NIcon :component="CircleAlert" size="17" />
-      <span>生产界面不使用浏览器 File API 模拟索引，也不展示虚构文件、命中率或节省比例。</span>
+      <span>字幕导入、管理与优先匹配尚未接入。目前请使用区域或窗口翻译。</span>
     </div>
   </section>
 </template>

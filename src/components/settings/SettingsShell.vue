@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, type DeepReadonly } from 'vue'
-import { Captions, House, Keyboard, Languages, ScanLine, Search, X } from 'lucide-vue-next'
+import { Captions, House, Keyboard, Languages, ScanLine, Settings, X } from 'lucide-vue-next'
 import { NButton, NIcon } from 'naive-ui'
 
 import { useWindowNavigation } from '@/composables/useWindowNavigation'
@@ -66,7 +66,7 @@ function startDragging(event: MouseEvent) {
 </script>
 
 <template>
-  <main class="settings-window">
+  <main class="settings-window" :class="`platform-${props.snapshot?.platform.platform ?? 'unsupported'}`">
     <header class="settings-titlebar" @mousedown="startDragging">
       <button
         type="button"
@@ -79,7 +79,7 @@ function startDragging(event: MouseEvent) {
         <X :size="8" :stroke-width="3" />
       </button>
       <div class="settings-brand">
-        <span class="brand-icon" aria-hidden="true"><Search :size="14" /></span>
+        <span class="brand-icon" aria-hidden="true"><Settings :size="15" /></span>
         <b>设置</b>
         <span>LoreLingo</span>
       </div>
@@ -97,8 +97,8 @@ function startDragging(event: MouseEvent) {
     </header>
 
     <div class="settings-layout">
-      <nav class="settings-nav" role="tablist" aria-label="设置分类" @keydown="onTabKeydown">
-        <span class="nav-title">设置</span>
+      <nav class="settings-nav" role="tablist" aria-orientation="vertical" aria-label="设置分类" @keydown="onTabKeydown">
+        <span class="nav-title">偏好设置</span>
         <button
           v-for="tab in tabs"
           :id="`settings-tab-${tab.id}`"
@@ -178,32 +178,37 @@ function startDragging(event: MouseEvent) {
   box-shadow: var(--shadow); isolation: isolate;
 }
 .settings-titlebar { display: flex; align-items: center; gap: 10px; min-height: 51px; padding: 9px 13px; border-bottom: 1px solid var(--border); user-select: none; }
-.close-control { width: 23px; height: 30px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; color: #7d0000; }
-.close-control::before { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #ff5f57; border: .5px solid #e0443e; }
-.close-control :deep(svg) { position: relative; z-index: 1; opacity: 0; transition: opacity 120ms ease; }
-.close-control:hover :deep(svg), .close-control:focus-visible :deep(svg) { opacity: 1; }
+.close-control { position: relative; width: 30px; height: 30px; border: 0; border-radius: 6px; background: transparent; display: grid; place-items: center; cursor: pointer; color: var(--muted); }
+.close-control :deep(svg) { width: 14px; height: 14px; }
+.close-control:hover { color: var(--fg); background: var(--glass-hi); }
+.platform-windows .close-control { order: 2; }
+.platform-macos .close-control { width: 23px; color: #7d0000; }
+.platform-macos .close-control:hover { background: transparent; }
+.platform-macos .close-control::before { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #ff5f57; border: .5px solid #e0443e; }
+.platform-macos .close-control :deep(svg) { width: 8px; height: 8px; position: relative; z-index: 1; opacity: 0; transition: opacity 120ms ease; }
+.platform-macos .close-control:hover :deep(svg), .platform-macos .close-control:focus-visible :deep(svg) { opacity: 1; }
 .settings-brand { display: flex; align-items: center; gap: 8px; }
 .settings-brand b { font: 600 13px/1 var(--font-display); }
 .settings-brand > span:last-child { color: var(--faint); font-size: 10px; }
-.brand-icon { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; color: white; background: linear-gradient(135deg, var(--accent), oklch(64% .13 260)); }
+.brand-icon { display: grid; place-items: center; color: var(--muted); }
 .title-spacer { flex: 1; }
-.settings-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 208px minmax(0, 1fr); }
+.settings-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 164px minmax(0, 1fr); }
 .settings-nav { display: flex; flex-direction: column; gap: 4px; padding: 14px 12px; border-right: 1px solid var(--border); background: color-mix(in oklch, var(--glass-strong) 72%, transparent); }
-.nav-title { padding: 4px 10px 10px; color: var(--faint); font: 500 10px/1 var(--mono); letter-spacing: .12em; }
-.nav-item { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; min-height: 52px; padding: 10px 11px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; font: 550 12px/1 var(--font); text-align: left; transition: background 160ms ease, color 160ms ease, border-color 160ms ease; }
+.nav-title { padding: 4px 10px 12px; color: var(--faint); font: 500 11px/1.4 var(--font); }
+.nav-item { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font: 550 12px/1 var(--font); text-align: left; transition: background 160ms ease, color 160ms ease, border-color 160ms ease; }
 .nav-item:hover { background: var(--glass-hi); color: var(--fg); }
 .nav-item.active { color: var(--fg); border-color: color-mix(in oklch, var(--accent) 30%, transparent); background: var(--accent-dim); }
 .nav-item.active::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
-.nav-icon { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in oklch, var(--surface-muted) 60%, transparent); color: var(--muted); transition: inherit; }
-.nav-item.active .nav-icon { color: var(--accent); border-color: color-mix(in oklch, var(--accent) 35%, transparent); background: color-mix(in oklch, var(--accent) 12%, transparent); }
-.nav-label { color: var(--fg); font: 550 13px/1.2 var(--font); }
+.nav-icon { width: 24px; height: 24px; flex: none; display: grid; place-items: center; color: var(--muted); transition: inherit; }
+.nav-item.active .nav-icon { color: var(--accent); }
+.nav-label { font: 550 13px/1.2 var(--font); }
 .nav-item:focus-visible, .close-control:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .settings-content { min-width: 0; overflow-y: auto; padding: 20px 22px; }
 .settings-content > [role='tabpanel'][hidden] { display: none; }
 .settings-content::-webkit-scrollbar { width: 8px; }
 .settings-content::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: var(--border-hi); background-clip: padding-box; }
 @media (max-width: 640px) {
-  .settings-layout { grid-template-columns: 160px minmax(0, 1fr); }
+  .settings-layout { grid-template-columns: 140px minmax(0, 1fr); }
   .settings-nav { padding-inline: 7px; }
   .nav-item { gap: 7px; padding-inline: 8px; }
   .settings-content { padding: 18px 14px 22px; }

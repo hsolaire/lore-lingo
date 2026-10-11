@@ -35,7 +35,7 @@ const engineName = computed(() => {
     <div class="section-heading">
       <div>
         <h2 id="ocr-heading">OCR</h2>
-        <p>查看当前识别引擎、语言和采样策略。</p>
+        <p>查看识别引擎配置与系统支持情况。</p>
       </div>
       <NTag size="small" :type="systemAvailable ? 'success' : 'warning'" round>
         {{ systemAvailable ? '系统 OCR 可用' : '系统 OCR 不可用' }}
@@ -45,12 +45,13 @@ const engineName = computed(() => {
     <div class="ocr-card">
       <NIcon :component="ScanLine" size="23" />
       <div>
-        <span>当前引擎</span>
+        <span>已保存的引擎配置</span>
         <b>{{ engineName }}</b>
         <small>{{ settings?.recognitionLanguages.join('、') || '未设置识别语言' }}</small>
       </div>
     </div>
 
+    <p class="preset-note">以下为连续识别预设，尚未用于当前单次捕获。</p>
     <div class="metric-grid">
       <div><span>采样帧率</span><b>{{ settings?.sampleFps ?? 0 }} fps</b></div>
       <div><span>连续帧去重</span><b>{{ settings?.deduplicateFrames ? '已开启' : '已关闭' }}</b></div>
@@ -63,7 +64,7 @@ const engineName = computed(() => {
 
     <div class="honest-state" role="status">
       <NIcon :component="CircleAlert" size="17" />
-      <span>这里只展示数据库中的真实配置；引擎探测和编辑保存尚未接入时，不会显示“引擎就绪”。</span>
+      <span>{{ systemAvailable ? '当前平台支持系统 OCR。' : '当前平台暂未接入系统 OCR。' }}引擎切换、识别预设编辑与连续采样尚未接入。</span>
     </div>
   </section>
 </template>
@@ -78,6 +79,7 @@ const engineName = computed(() => {
 .ocr-card span, .metric-grid span, .confidence span { color: var(--faint); font-size: 10px; }
 .ocr-card b, .metric-grid b { font-size: 13px; }
 .ocr-card small { color: var(--muted); font-size: 11px; }
+.preset-note { color: var(--faint); font-size: 11px; line-height: 1.5; }
 .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .metric-grid > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
 .confidence { display: flex; flex-direction: column; gap: 8px; }

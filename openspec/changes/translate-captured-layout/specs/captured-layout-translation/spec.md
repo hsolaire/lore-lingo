@@ -85,3 +85,26 @@ The system MUST keep screenshots, recognized text, translations, and API credent
 #### Scenario: User retries after failure
 - **WHEN** the user retries a recoverable failure
 - **THEN** the system starts a new task using current in-memory configuration and does not reuse stale selector or result state
+
+### Requirement: 可校验的运行期翻译设置
+设置页 SHALL 读取并应用区域和窗口任务共用的进程内配置；保存时 SHALL 使用实际翻译请求相同的端点与凭据规则，不因配置通过校验而声称已验证服务连通性。
+
+#### Scenario: 应用有效配置
+- **WHEN** 用户显式应用包含有效地址、模型和所需 API Key 的配置
+- **THEN** 系统去除字段首尾空白并更新共享运行期配置，下一次捕获使用该配置，密钥不会写入磁盘
+- **AND** IPv4 与 IPv6 回环服务可以不填写 API Key
+
+#### Scenario: 拒绝无效配置
+- **WHEN** 地址无效、包含 URL 凭据、查询参数或片段、违反已有网络地址限制，或者远程服务缺少 API Key
+- **THEN** 系统拒绝保存并保留上一次已应用的配置，设置页显示安全的错误提示
+
+#### Scenario: 加载失败与修改草稿
+- **WHEN** 配置读取失败
+- **THEN** 设置页禁止覆盖保存并提供重新读取入口
+- **WHEN** 用户修改配置后选择撤销修改
+- **THEN** 设置页恢复最近一次已读取或已应用的值，不发起保存
+
+#### Scenario: 说明尚未接入的设置
+- **WHEN** 用户查看设置页
+- **THEN** 当前可用配置优先展示，自动翻译、历史、字幕库与跨重启配置的未完成状态明确标注
+- **AND** 未完成配置不显示为当前单次捕获已生效的选项，更多功能支持键盘展开与收起

@@ -16,6 +16,19 @@ const baseSettings = {
 }
 
 describe('翻译设置面板', () => {
+  it('未完成的功能默认收起，并通过可聚焦按钮展开与收起', async () => {
+    const wrapper = mount(TranslationSettingsPanel, { props: { settings: baseSettings, defaultModel: null } })
+    const toggle = wrapper.get('button[aria-controls="planned-features"]')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.get('#planned-features').isVisible()).toBe(false)
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.get('#planned-features').isVisible()).toBe(true)
+    expect(wrapper.get('#planned-features').text()).toContain('重启后保留配置')
+    await toggle.trigger('click')
+    expect(wrapper.get('#planned-features').isVisible()).toBe(false)
+    wrapper.unmount()
+  })
   it('将数据库语言代码转换为面向用户的语言名称', () => {
     const wrapper = mount(TranslationSettingsPanel, {
       props: {

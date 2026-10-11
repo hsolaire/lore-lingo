@@ -94,7 +94,7 @@ function formatBinding(shortcut?: DeepReadonly<ShortcutBindingSummary>) {
   <section class="settings-section" aria-labelledby="shortcuts-heading">
     <div class="section-heading">
       <h2 id="shortcuts-heading">快捷键</h2>
-      <p>点击后按下键盘组合键或手柄按键进行绑定，不支持手敲。</p>
+      <p>查看已保存的绑定；键盘与手柄录入暂不可用。</p>
     </div>
 
     <div class="shortcut-list">

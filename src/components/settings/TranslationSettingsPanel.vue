@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, type DeepReadonly } from 'vue'
-import {
-  NAlert,
-  NInputNumber,
-  NRadio,
-  NRadioGroup,
-  NSelect,
-  NSwitch,
-  NTag,
-} from 'naive-ui'
+import { ChevronDown } from 'lucide-vue-next'
+import { NButton, NIcon, NTag } from 'naive-ui'
 
 import CaptureServiceSettings from './CaptureServiceSettings.vue'
 
@@ -18,7 +11,9 @@ const props = defineProps<{
   settings: DeepReadonly<TranslationSettingsSummary> | null
   defaultModel: DeepReadonly<ModelProfileSummary> | null
 }>()
-const serviceConfigured = ref(false)
+const serviceStatus = ref<'loading' | 'configured' | 'unconfigured' | 'error'>('loading')
+const showPlanned = ref(false)
+const statusLabels = { loading: '正在读取', configured: '已应用', unconfigured: '待配置', error: '读取失败' } as const
 
 const languageNames: Record<string, string> = {
   auto: '自动检测',
@@ -43,12 +38,6 @@ const sourceLanguageCode = computed(() => props.settings?.sourceLanguage ?? '')
 const targetLanguageCode = computed(() => props.settings?.targetLanguage ?? '')
 const sourceLanguage = computed(() => formatLanguageName(sourceLanguageCode.value))
 const targetLanguage = computed(() => formatLanguageName(targetLanguageCode.value))
-const intervalSeconds = computed(() => (props.settings?.autoIntervalMs ?? 1000) / 1000)
-const timeoutSeconds = computed(() => (props.settings?.requestTimeoutMs ?? 30000) / 1000)
-const languageOptions = computed(() => [
-  { label: sourceLanguage.value, value: sourceLanguageCode.value },
-  { label: targetLanguage.value, value: targetLanguageCode.value },
-])
 </script>
 
 <template>
@@ -56,79 +45,50 @@ const languageOptions = computed(() => [
     <div class="section-heading">
       <div>
         <h2 id="translation-heading">翻译</h2>
-        <p>配置区域和窗口捕获共用的翻译服务与模型。</p>
+        <p>为区域和窗口翻译配置同一个服务。</p>
       </div>
-      <NTag size="small" :type="serviceConfigured ? 'success' : 'warning'" round>
-        {{ serviceConfigured ? '服务已配置' : '服务待配置' }}
+      <NTag size="small" :type="serviceStatus === 'configured' ? 'success' : serviceStatus === 'error' ? 'error' : 'default'" round role="status">
+        {{ statusLabels[serviceStatus] }}
       </NTag>
     </div>
 
-    <CaptureServiceSettings @configured="serviceConfigured = $event" />
+    <div class="service-heading"><h3>服务与模型</h3><span>单次翻译</span></div>
+    <CaptureServiceSettings @status="serviceStatus = $event" />
+    <p v-if="settings" class="language-note">启动默认语言：{{ sourceLanguage }} → {{ targetLanguage }}<span>可在悬浮工具栏的“翻译”菜单中切换。</span></p>
 
-    <div class="field-group">
-      <span class="field-label">翻译方式</span>
-      <NRadioGroup :value="settings?.mode ?? 'manual'" disabled name="translation-mode">
-        <div class="choice-grid">
-          <label class="choice-card">
-            <NRadio value="manual" />
-            <span><b>手动翻译</b><small>按快捷键后翻译当前画面一次</small></span>
-          </label>
-          <label class="choice-card">
-            <NRadio value="auto" />
-            <span><b>自动翻译</b><small>按固定间隔识别并刷新译文</small></span>
-          </label>
-        </div>
-      </NRadioGroup>
+    <div class="planned-features">
+      <NButton quaternary block class="planned-toggle" aria-controls="planned-features" :aria-expanded="showPlanned" @click="showPlanned = !showPlanned">
+        <span>更多功能</span><span class="pending-label">尚未接入</span><NIcon :component="ChevronDown" :class="{ expanded: showPlanned }" />
+      </NButton>
+      <div id="planned-features" :hidden="!showPlanned">
+        <ul class="planned-list">
+          <li><b>自动翻译</b><span>按间隔持续识别和刷新译文</span></li>
+          <li><b>字幕库匹配</b><span>优先使用已导入的本地字幕</span></li>
+          <li><b>翻译历史</b><span>保存记录并设置保留时间</span></li>
+          <li><b>重启后保留配置</b><span>自动恢复服务配置与安全保存的密钥</span></li>
+        </ul>
+      </div>
     </div>
-
-    <div class="form-grid">
-      <label class="field-group">
-        <span class="field-label">自动翻译间隔</span>
-        <NInputNumber :value="intervalSeconds" disabled :show-button="false">
-          <template #suffix>秒</template>
-        </NInputNumber>
-      </label>
-      <label class="field-group">
-        <span class="field-label">请求超时</span>
-        <NInputNumber :value="timeoutSeconds" disabled :show-button="false">
-          <template #suffix>秒</template>
-        </NInputNumber>
-      </label>
-      <label class="field-group">
-        <span class="field-label">源语言</span>
-        <NSelect :value="sourceLanguageCode" :options="languageOptions" disabled />
-      </label>
-      <label class="field-group">
-        <span class="field-label">目标语言</span>
-        <NSelect :value="targetLanguageCode" :options="languageOptions" disabled />
-      </label>
-    </div>
-
-    <div class="switch-list">
-      <label><NSwitch :value="settings?.preferSubtitles ?? false" disabled />优先匹配字幕库</label>
-      <label><NSwitch :value="settings?.saveHistory ?? false" disabled />保存翻译历史</label>
-    </div>
-
-    <NAlert type="info" :show-icon="true" :bordered="false">
-      上方服务配置用于当前的单次区域和窗口翻译；自动翻译、历史保存和系统凭据持久化尚未接入。
-    </NAlert>
   </section>
 </template>
 
 <style scoped>
 .settings-section { display: flex; flex-direction: column; gap: 18px; }
-.section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.section-heading h2 { font: 650 19px/1.2 var(--font-display); }
-.section-heading p { margin-top: 5px; color: var(--faint); font-size: 12px; line-height: 1.45; }
-.field-group { display: flex; flex-direction: column; gap: 8px; }
-.field-label { color: var(--muted); font-size: 11px; font-weight: 550; }
-.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.choice-card { display: flex; gap: 9px; min-height: 72px; padding: 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-muted); }
-.choice-card span { display: flex; flex-direction: column; gap: 5px; }
-.choice-card b { font-size: 12px; }
-.choice-card small { color: var(--faint); font-size: 10px; line-height: 1.45; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 12px; }
-.switch-list { display: flex; flex-wrap: wrap; gap: 14px 20px; }
-.switch-list label { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
-@media (max-width: 440px) { .choice-grid, .form-grid { grid-template-columns: 1fr; } }
+.section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.section-heading h2 { font: 650 20px/1.2 var(--font-display); }
+.section-heading p { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.service-heading { display: flex; align-items: center; justify-content: space-between; }
+.service-heading h3 { font: 600 13px/1.4 var(--font); }
+.service-heading > span, .pending-label { font-size: 11px; color: var(--faint); }
+.language-note { font-size: 11px; line-height: 1.6; color: var(--muted); }
+.language-note span { display: block; color: var(--faint); }
+.planned-features { border-top: 1px solid var(--border); padding-top: 10px; }
+.planned-toggle :deep(.n-button__content) { width: 100%; gap: 8px; }
+.pending-label { margin-left: auto; }
+.planned-toggle :deep(.n-icon) { transition: transform .16s; }
+.planned-toggle :deep(.expanded) { transform: rotate(180deg); }
+.planned-list { list-style: none; display: grid; gap: 14px; padding: 16px 10px 0; }
+.planned-list li { display: flex; flex-direction: column; gap: 3px; }
+.planned-list b { font-size: 12px; font-weight: 550; color: var(--muted); }
+.planned-list span { font-size: 11px; line-height: 1.5; color: var(--faint); }
 </style>

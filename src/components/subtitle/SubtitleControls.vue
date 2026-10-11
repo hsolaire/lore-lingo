@@ -68,15 +68,15 @@ function drag(event: MouseEvent) {
 </template>
 
 <style scoped>
-.subtitle-controls { display: flex; align-items: center; gap: 16px; padding: 7px 10px; min-height: 46px; border-bottom: 1px solid var(--border); color: var(--muted); user-select: none; }
+.subtitle-controls { display: flex; align-items: center; gap: 16px; padding: 7px 12px; min-height: 46px; border-bottom: 1px solid var(--border); background: var(--surface-muted); color: var(--muted); user-select: none; }
 .native-space { width: 70px; height: 28px; flex: none; }
-.action-group, .window-group { display: flex; align-items: center; gap: 8px; flex: none; }
+.action-group, .window-group { display: flex; align-items: center; gap: 6px; flex: none; }
 .window-group { margin-left: auto; }
 :deep(.n-button) { height: 30px; flex: none; border-radius: 7px; }
 :deep(.n-button--circle) { width: 30px; }
 :deep(.n-button__content) { gap: 5px; }
 :deep(.n-icon) { font-size: 18px; }
-.active { color: var(--accent); background: var(--accent-dim); }
+.active { color: var(--accent); background: var(--surface-muted); }
 :deep(button:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
 @media (max-width: 580px) { .subtitle-controls { gap: 10px; padding-inline: 8px; }.action-group, .window-group { gap: 4px; } }
 @media (max-width: 540px) { .label { display: none; } }

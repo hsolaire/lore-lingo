@@ -112,7 +112,9 @@ impl TranslationClient {
     }
 }
 
-fn validated_completion_url(config: &TranslationConfig) -> Result<Url, CaptureTranslationError> {
+pub(crate) fn validated_completion_url(
+    config: &TranslationConfig,
+) -> Result<Url, CaptureTranslationError> {
     let endpoint = config.endpoint.trim();
     let model = config.model.trim();
     if endpoint.is_empty() || model.is_empty() {
@@ -121,20 +123,27 @@ fn validated_completion_url(config: &TranslationConfig) -> Result<Url, CaptureTr
 
     let mut base =
         Url::parse(endpoint).map_err(|_| CaptureTranslationError::TranslationNotConfigured)?;
-    if !base.username().is_empty() || base.password().is_some() || base.host_str().is_none() {
+    if !base.username().is_empty()
+        || base.password().is_some()
+        || base.host_str().is_none()
+        || base.query().is_some()
+        || base.fragment().is_some()
+    {
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
-    let is_loopback = base.host_str().is_some_and(|host| {
-        host.eq_ignore_ascii_case("localhost") || host == "127.0.0.1" || host == "::1"
+    let address = base.host_str().and_then(|host| {
+        host.trim_matches(['[', ']'])
+            .parse::<std::net::IpAddr>()
+            .ok()
     });
+    let is_loopback = base
+        .host_str()
+        .is_some_and(|host| host.eq_ignore_ascii_case("localhost"))
+        || address.is_some_and(|address| address.is_loopback());
     if base.scheme() != "http" && base.scheme() != "https" {
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
-    if base
-        .host_str()
-        .and_then(|host| host.parse::<std::net::IpAddr>().ok())
-        .is_some_and(is_disallowed_network_address)
-    {
+    if address.is_some_and(is_disallowed_network_address) {
         return Err(CaptureTranslationError::TranslationNotConfigured);
     }
     if !is_loopback && config.api_key.trim().is_empty() {
