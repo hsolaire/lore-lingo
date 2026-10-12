@@ -1,6 +1,7 @@
 pub mod connection;
 pub mod migrations;
 pub mod repositories;
+pub mod storage;
 
 use std::{fmt, io};
 

@@ -8,7 +8,7 @@ use rusqlite::{Connection, TransactionBehavior};
 
 use super::{migrations::run_migrations, DatabaseError};
 
-const DATABASE_FILE_NAME: &str = "lore-lingo.sqlite3";
+pub(super) const DATABASE_FILE_NAME: &str = "lore-lingo.sqlite3";
 const BUSY_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Debug)]
@@ -17,9 +17,9 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn initialize(app_data_dir: &Path) -> Result<Self, DatabaseError> {
-        fs::create_dir_all(app_data_dir)?;
-        Self::initialize_file(app_data_dir.join(DATABASE_FILE_NAME))
+    pub fn initialize(directory: &Path) -> Result<Self, DatabaseError> {
+        fs::create_dir_all(directory)?;
+        Self::initialize_file(directory.join(DATABASE_FILE_NAME))
     }
 
     pub fn initialize_file(path: PathBuf) -> Result<Self, DatabaseError> {
@@ -29,9 +29,7 @@ impl Database {
 
         let database = Self { path };
         let mut connection = database.connect()?;
-        run_migrations(&mut connection)?;
-        ensure_singleton_defaults(&mut connection)?;
-        verify_sqlite_capabilities(&connection)?;
+        prepare_database(&mut connection)?;
         Ok(database)
     }
 
@@ -44,6 +42,12 @@ impl Database {
     pub fn path(&self) -> &Path {
         &self.path
     }
+}
+
+pub(super) fn prepare_database(connection: &mut Connection) -> Result<(), DatabaseError> {
+    run_migrations(connection)?;
+    ensure_singleton_defaults(connection)?;
+    verify_sqlite_capabilities(connection)
 }
 
 pub fn configure_connection(connection: &Connection) -> Result<(), DatabaseError> {

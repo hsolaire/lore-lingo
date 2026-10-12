@@ -110,13 +110,13 @@ pub fn run() {
         .setup(|app| {
             use tauri::Manager;
 
+            let legacy_directory = app.path().app_data_dir().ok();
             let database = app
                 .path()
-                .app_data_dir()
-                .ok()
-                .map(|directory| db::connection::Database::initialize(&directory))
-                .unwrap_or_else(|| {
-                    Err(db::DatabaseError::InvalidData("应用数据目录不可用".into()))
+                .home_dir()
+                .map_err(|_| db::DatabaseError::InvalidData("用户主目录不可用".into()))
+                .and_then(|home| {
+                    db::storage::initialize_default(&home, legacy_directory.as_deref())
                 });
             let bootstrap = match &database {
                 Ok(database) => BootstrapService::new(Ok(database.clone())),
